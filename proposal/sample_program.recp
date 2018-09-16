@@ -1,0 +1,21 @@
+void main(){
+
+	//define the appliances in the kitchen
+	app myStove = new Stove();
+	app myOven = new Oven();
+
+	//get multiple ingredients
+	//returns an array of type ing
+	arr tomatoes = Pantry.fetchMult('tomato',1)
+	arr eggs = Pantry.fetchMult('egg',3)
+
+	//get one ingredient
+	//returns type ing
+	ing onion = Pantry.fetch('onion')
+
+	onion.chop()
+	mystove.saute(onion)
+
+	for 
+}
+
