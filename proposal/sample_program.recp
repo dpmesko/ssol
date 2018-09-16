@@ -14,8 +14,10 @@ void main(){
 	ing onion = Pantry.fetch('onion')
 
 	onion.chop()
-	mystove.saute(onion)
+	myStove.saute(onion)
 
-	for 
+	for(int i = 0; i<eggs.length; i++){
+		eggs[i].crack()
+	}
 }
 
