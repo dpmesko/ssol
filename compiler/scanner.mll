@@ -5,6 +5,7 @@
 rule token = parse
   [' ' '\t' '\r' '\n'] { token lexbuf } (* Whitespace *)
 | "/*"     { comment lexbuf }           (* Comments *)
+| "//"     { single lexbuf }
 | '('      { LPAREN }
 | ')'      { RPAREN }
 | '{'      { LBRACE }
@@ -15,6 +16,7 @@ rule token = parse
 | '-'      { MINUS }
 | '*'      { TIMES }
 | '/'      { DIVIDE }
+| '%'      { MOD }
 | '='      { ASSIGN }
 | "=="     { EQ }
 | "!="     { NEQ }
@@ -26,6 +28,7 @@ rule token = parse
 | "||"     { OR }
 | "!"      { NOT }
 | "|"      { PIPE }
+| "|="     { PIPEND }
 | "if"     { IF }
 | "elif"   { ELIF }
 | "else"   { ELSE }
@@ -45,11 +48,16 @@ rule token = parse
 | "true"   { TRUE }
 | "false"  { FALSE }
 | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }
-| ['0'-'9']+ '.'['0'-'9']+ as lxm { DOUBLE_LITERAL(float_of_string lxm)} 
+| ['0'-'9']+ '.'['0'-'9']+ as lxm { FLOAT_LITERAL(float_of_string lxm)} 
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
+| '"' ([^ '"']* as str) '"' { STRING_LITERAL(str) }
 | eof { EOF }
 | _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }
 
 and comment = parse
   "*/" { token lexbuf }
 | _    { comment lexbuf }
+
+and single = parse
+  '\n' { single lexbuf
+| _    { token lexbuf }
