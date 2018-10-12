@@ -12,6 +12,7 @@ rule token = parse
 | '}'      { RBRACE }
 | ';'      { SEMI }
 | ','      { COMMA }
+| '.'      { DOT } 
 | '+'      { PLUS }
 | '-'      { MINUS }
 | '*'      { TIMES }
@@ -48,7 +49,7 @@ rule token = parse
 | "true"   { TRUE }
 | "false"  { FALSE }
 | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }
-| ['0'-'9']+ '.'['0'-'9']+ as lxm { FLOAT_LITERAL(float_of_string lxm)} 
+| ['0'-'9']* '.'['0'-'9']+ as lxm { FLOAT_LITERAL(float_of_string lxm)} 
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 | '"' ([^ '"']* as str) '"' { STRING_LITERAL(str) }
 | eof { EOF }
