@@ -1,0 +1,260 @@
+\documentclass{article}
+
+\usepackage{amsmath,amssymb,psfrag,epsfig,boxedminipage,helvet,theorem,endnotes,version,enumerate,environ,rotating,alltt}
+\newcommand{\remove}[1]{}
+\setlength{\oddsidemargin}{-.2in}
+\setlength{\evensidemargin}{-.2in}
+\setlength{\textwidth}{6.5in}
+\setlength{\topmargin}{-0.8in}
+\setlength{\textheight}{9.5in}
+\usepackage[utf8]{inputenc}
+\title{\bf SSOL Language Reference Manual}
+\author{\begin{center}
+\begin{tabular}{ c c c }
+    Madeleine Tipp & Jeevan Farias & Daniel Mesko \\
+    mrt2148 & jtf2126 & dpm2153 \\ 
+    Manager & Language Guru & System Architect 
+\end{tabular}
+\end{center}
+}
+\date{October 15, 2018}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\section*{Introduction}
+
+SSOL is a programming language that allows users to create shapes algorithmically and render them via an SVG file. It features two built-in shape objects, point and curve, which can be used as building blocks to define more complex polygons or curved figures. The shapes are then added to a user-defined Canvas object, which abstractly represents the plane on which the shapes are to be drawn. The Canvas object can then be passed into the built-in $draw()$ function to be rendered and stored as an SVG file. Without using $draw()$, SSOL functions as a minimal, general purpose programming language similar to C.
+
+
+\section{Lexical Conventions}
+\subsection{Identifiers}
+Identifiers consist of one of more characters where the leading character is a uppercase or lowercase letter followed by a sequence uppercase/lowercase letters, digits and possibly underscores. Identifiers are primarily used variable declaration.
+
+\subsection{Keywords}
+\begin{center}
+\begin{tabular}{ |c c| }
+    \hline 
+    \bf Keyword & \bf Usage \\
+    \hline
+    if & initiates a typical if-elif-else control flow statement \\
+    elif \\   
+    else \\
+    while & initiates a while loop \\
+    for & initaites a for loop \\
+    return & returns the acommpanying value (must be of the appropriate return type) \\
+    void & used to identify a function that does not return a value \\
+    int & type identifier for int \\
+    float & type identifier for float \\
+    bool & type identifier for bool \\
+    char & type identifier for char \\
+    String & type identifier for String \\
+    Point & type identifier for Point \\
+    Curve & type identifier for Curve \\
+    Canvas & type identifier for Canvas \\
+    \hline
+\end{tabular}
+\end{center}
+
+
+
+
+\section{Types}
+\subsection{Primitives}
+\begin{center}
+\begin{tabular}{ |c c| }
+    \hline 
+    \bf Type & \bf Definition \\
+    \hline
+    int & 4 byte signed integer \\
+    double & 8 byte floating-point decimal number \\
+    bool & 1 byte boolean value \\
+    char & 1 byte ASCII character \\
+    String & array of ASCII characters \\
+    \hline
+\end{tabular}
+\end{center}
+
+\subsection{Complex Types}
+The following built-in complex data types are represented as objects with member fields and are instantiated using their associated constructors. The individual fields of the objects can be accessed and modified with $.$ notation: \begin{verbatim} object.field \end{verbatim}
+
+\subsubsection{Point}
+A Point object contains two fields: an $x$ and a $y$ coordinate value, both of type \texttt{double}. \\
+A Point object is instantiated using its sole constructor: 
+\begin{verbatim}
+    Point(double x, double y)
+\end{verbatim}
+
+\subsubsection{Curve}
+A curve object represents a Bezier curve, defined by two endpoints and two control points. Curves are instantiated using the following two constructors:
+\begin{verbatim}
+    Curve(Point a, Point b) 
+    Curve(Point a, Point b, Point c1, Point c2) 
+\end{verbatim}
+The first constructor creates a straight line defined by endpoints $a$ and $b$.
+The second constructor creates a curve defined by endpoints $a$ and $b$ and control points $c1$ and $c2$.
+
+\subsubsection{Canvas}
+A canvas object represents a two-dimensional coordinate plane to which Point and Curve objects are added. 
+These graphical elements are added using the $|$ operator. Canvas objects are outputted to files via the $draw$ library function.\\
+
+\noindent A canvas object is instantiated using either of the following two constructors:
+\begin{verbatim}
+    Canvas() 
+    Canvas(int x, int y) 
+\end{verbatim}
+The first constructor creates a Canvas object with default dimensions of $1000 \times 1000$.\\
+This second constructor creates a Canvas object with the dimensions specified by the values for $x$ and $y$.
+
+
+
+\section{Syntax}
+\subsection{Type Specifiers}
+SSOL is a language with explicit typing. All variables and functions must be declared with a type specifier, which tells compiler which operations are valid for the former and what to expect the latter to return. 
+\subsubsection{Primitives}
+\begin{verbatim}
+    int x = 3;
+    String myString = "hello”;
+    bool b = true;
+\end{verbatim}
+
+\subsubsection{Complex Types}
+\begin{verbatim}
+    //Canvas can be instantiated with default size or with a user specified size
+    Canvas can1 = Canvas();
+    Canvas can2 = Canvas(100,100);
+    
+    Point pt = Point(10,20);
+    
+    //Create a straight line by declaring a Curve with only 2 arguments
+    Curve crv1 = Curve( (10,20),(100,200) );
+    
+    //Create a bezier curve by declaring a Curve using 4 arguments
+    //Here we demonstrate that Curve will except 
+    Curve crv2 = Curve( pt, (40,40), (100,100), (120,140) );
+\end{verbatim}
+
+\subsection{Arrays}
+Arrays in SSOL are instantiated with a fixed size and can only hold a single type, which can be either primitive or complex. \texttt{Array.length} returns the length of the array.
+\subsubsection{Declaration}
+\begin{verbatim}
+    int intArr[5];
+    char charArr['c','h','a','r'];
+    Point pointArr[10];
+\end{verbatim}
+\subsubsection{Accessing}
+Use brackets and an index to retrieve a value from an array. The specified index must be within the bound of the array. The variable returned by the array access operation must match the variable that its value is assigned to.
+\begin{verbatim}
+    int i = intArr[0];
+    Point p = Point(intArr[0], intArr[1]);
+\end{verbatim}
+\subsection{Operators}
+\subsubsection{Arithmetic}
+Addition (+), subtraction (-), multiplication (*), and division (/) are standard arithmetic operators in SSOL which comply with order of operations. Increment (++) and decement (--) are also valid operators. These are all valid operations for both $int$ and $float$, but cannot be used on $int$ and $float$ together.
+\subsubsection{Comparison}
+Comparison in SSOL is done via ==, !=, \textless ,\textgreater,\textless=, and \textgreater=. Only matching types can be compared. These operators return a boolean value of $true$ or $false$
+
+\subsubsection{Logical}
+SSOL can perform logical operations of boolean values with \texttt\&\& and $||$.
+\begin{verbatim}
+    bool b1 = true && true;
+    bool b2 = false || false;
+\end{verbatim}
+
+\subsubsection{Assignment}
+The assignment statement is of the form \texttt{[identifier-type] <identifier> = expression}. The \texttt{[identifier-type]} field can be omitted if \texttt{identifier} has already been declared.
+
+\subsection{Statements}
+
+\subsubsection{Sequencing}
+Consecutive statements are sequenced using the \texttt{;} operator.
+\subsubsection{Control Flow}
+SSOL supports the standard \texttt{if...else if...else} format of conditional statements. 
+\texttt{if} and \texttt{else if} require a boolean statement to be evaluated.
+\begin{verbatim}
+    int i = 3;
+    if(i>4){
+        print("i > 4");
+    } else if (i==3){
+        print("i = 3");
+    } else {
+        print("who is i");
+    }
+\end{verbatim}
+\subsubsection{Loops}
+SSOL supports \texttt{\bf for} loops and \texttt{\bf while} loops. For loops are an iterative construct that requires a starting index variable, a bounding condition, and an operation to be performed at the end of each iteration.\\
+A \texttt{\bf while} loop requires a boolean expression to be evaluated every time the loop is executed.
+\begin{verbatim}
+    for(int i = 0; i<arr.length; i++){
+        <loop-body>
+    }
+    
+    int j = 0
+    while(j<10){
+        j+=1;
+    }
+\end{verbatim}
+
+
+\subsection{Functions}
+\subsubsection{Declaration}
+Functions are declared as follows:
+\begin{verbatim}
+    <function-return-type> <function-name>([arg1],[arg2],...)
+    {
+        <function-body>
+        [return <some-value>]
+    }
+\end{verbatim}
+If the function has non-void return type, then it must return some value of that type at the end of the function, or
+at the end of any potential path of execution within the function, if there are conditional statements/loops. This is achieved using the keyword \texttt{return}.
+
+\subsubsection{Function Calls}
+Functions are called as follows:
+\begin{verbatim}
+    <function-name>([arg1],[arg2],...)
+\end{verbatim}
+
+If a function returns a value, that value can be assigned to a variable, as in
+\begin{verbatim}
+    [identifier-type] <identifier> = <function-name>([arg1],[arg2],...)
+\end{verbatim}
+
+\section{Standard Library Functions}
+\subsection{main()}
+Every valid SSOL program needs at least one function called $main()$. This is the routine that will be executed at runtime, so program trajectory must start from here.
+\subsection{draw()}
+$draw()$ is the crux of the SSOL language. This method takes a single $canvas$ object and a file name as a string as arguments. $draw()$ can be called as many times as the programmer desires, but there will be a 1:1 correlation between function calls and .SVG files written (if $draw$ is called with the same filename twice, the file will be overwritten).
+\subsection{printf()}
+$printf()$ is a formatted string printing function. \%s for string, \%i for int, \%f for float, \%c for char, \%b for bool.
+
+\section{Sample Code}
+
+
+
+\begin{verbatim}
+void main(){
+    
+    int l = 1000;
+    int w = 1000;
+    
+    Canvas can = Canvas(l,w);
+    
+    //Create 4 straight lines that form a square
+   Curve top = Curve(Point(w*.1,l*.1),Point(w*.9,l*.1));
+   Curve right = Curve(Point(w*.9,l*.1),Point(w*.9,l*.9));
+   Curve bottom = Curve(Point(w*.9,l*.1),Point(w*.9,l*.1));
+   Curve left = Curve(Point(w*.9,l*.1),Point(w*.1,l*.1));
+   
+   //Create a circle inside the square using 2 bezier curves
+   Curve semiTop = Curve(Point(w*.25,l*.5), Point(w*.25, l*.25),
+        Point(w*.75,l*.5), Point(w*.75,l*.25);
+   Curve semiBottom = Curve(Point(w*.25,l*.5), Point(w*.25, l*.75),
+        Point(w*.75,l*.5), Point(w*.75,l*.75);
+}
+\end{verbatim}
+
+\end{document}
