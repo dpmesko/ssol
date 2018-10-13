@@ -5,10 +5,14 @@ open Ast
 %}
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
-%token PLUS MINUS TIMES DIVIDE ASSIGN NOT
+%token PLUS MINUS TIMES DIVIDE MOD ASSIGN NOT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR
-%token RETURN IF ELSE FOR WHILE INT BOOL VOID
-%token <int> LITERAL
+%token DOT PIPE PIPEND 
+%token RETURN IF ELIF ELSE FOR WHILE BREAK INT FLOAT 
+%token CHAR STRING POINT CURVE CANVAS BOOL VOID
+%token <int> INT_LITERAL
+%token <float> FLOAT_LITERAL
+%token <string> STRING_LITERAL
 %token <string> ID
 %token EOF
 
@@ -21,6 +25,7 @@ open Ast
 %left LT GT LEQ GEQ
 %left PLUS MINUS
 %left TIMES DIVIDE
+%left MOD
 %right NOT NEG
 
 %start program
@@ -53,9 +58,15 @@ formal_list:
   | formal_list COMMA typ ID { ($3,$4) :: $1 }
 
 typ:
-    INT { Int }
-  | BOOL { Bool }
-  | VOID { Void }
+    INT      { Int    }
+  | FLOAT    { Float  }
+  | CHAR     { Char   }
+  | STRING   { String }
+  | POINT    { Point  }
+  | CURVE    { Curve  }
+  | CANVAS   { Canvas }
+  | BOOL     { Bool   }
+  | VOID     { Void   }
 
 vdecl_list:
     /* nothing */    { [] }
@@ -84,7 +95,7 @@ expr_opt:
   | expr          { $1 }
 
 expr:
-    LITERAL          { Literal($1) }
+    INT_LITERAL          { Literal($1) }
   | TRUE             { BoolLit(true) }
   | FALSE            { BoolLit(false) }
   | ID               { Id($1) }
@@ -92,6 +103,7 @@ expr:
   | expr MINUS  expr { Binop($1, Sub,   $3) }
   | expr TIMES  expr { Binop($1, Mult,  $3) }
   | expr DIVIDE expr { Binop($1, Div,   $3) }
+  | expr MOD    expr { Binop($1, Mod,   $3) }
   | expr EQ     expr { Binop($1, Equal, $3) }
   | expr NEQ    expr { Binop($1, Neq,   $3) }
   | expr LT     expr { Binop($1, Less,  $3) }
