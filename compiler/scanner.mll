@@ -48,7 +48,7 @@ rule token = parse
 | "void"   { VOID }
 | "true"   { TRUE }
 | "false"  { FALSE }
-| ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }
+| ['0'-'9']+ as lxm { INT_LITERAL(int_of_string lxm) }
 | ['0'-'9']* '.'['0'-'9']+ as lxm { FLOAT_LITERAL(float_of_string lxm)} 
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 | '"' ([^ '"']* as str) '"' { STRING_LITERAL(str) }
@@ -60,5 +60,5 @@ and comment = parse
 | _    { comment lexbuf }
 
 and single = parse
-  '\n' { single lexbuf
+  '\n' { single lexbuf }
 | _    { token lexbuf }
