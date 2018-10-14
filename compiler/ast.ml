@@ -15,6 +15,7 @@ type expr =
   | CharLit of char
   | StringLit of string
   | BoolLit of bool
+  | ArrayLit of expr list
   | Id of string
   | Binop of expr * op * expr
   | Unop of uop * expr
@@ -29,6 +30,8 @@ type stmt =
   | If of expr * stmt * stmt
   | For of expr * expr * expr * stmt
   | While of expr * stmt
+  | Break
+  | Continue
 
 type func_decl = {
     typ : typ;
@@ -47,6 +50,7 @@ let string_of_op = function
   | Sub -> "-"
   | Mult -> "*"
   | Div -> "/"
+  | Mod -> "%"
   | Equal -> "=="
   | Neq -> "!="
   | Less -> "<"
@@ -55,6 +59,8 @@ let string_of_op = function
   | Geq -> ">="
   | And -> "&&"
   | Or -> "||"
+  | Pipe -> "|"
+  | Pipend -> "|="
 
 let string_of_uop = function
     Neg -> "-"
@@ -62,6 +68,9 @@ let string_of_uop = function
 
 let rec string_of_expr = function
     IntLit(l) -> string_of_int l
+  | FloatLit(l) -> string_of_float l
+  | CharLit(l) -> Printf.sprintf "%c" l
+  | StringLit(l) -> l
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
   | Id(s) -> s
@@ -85,11 +94,20 @@ let rec string_of_stmt = function
       "for (" ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^
       string_of_expr e3  ^ ") " ^ string_of_stmt s
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
+  | Break -> "Break"
+  | Continue -> "Continue"
 
 let string_of_typ = function
     Int -> "int"
   | Bool -> "bool"
   | Void -> "void"
+  | Float -> "float"
+  | Char -> "char"
+  | String -> "string"
+  | Point -> "Point"
+  | Curve -> "Curve"
+  | Canvas -> "Canvas"
+
 
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 

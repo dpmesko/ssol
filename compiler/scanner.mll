@@ -10,6 +10,8 @@ rule token = parse
 | ')'      { RPAREN }
 | '{'      { LBRACE }
 | '}'      { RBRACE }
+| '['      { LBRACK }
+| ']'      { RBRACK }
 | ';'      { SEMI }
 | ','      { COMMA }
 | '.'      { DOT } 
@@ -31,12 +33,13 @@ rule token = parse
 | "|"      { PIPE }
 | "|="     { PIPEND }
 | "if"     { IF }
-| "elif"   { ELIF }
+(*| "elif"   { ELIF }*)
 | "else"   { ELSE }
 | "for"    { FOR }
 | "while"  { WHILE }
 | "return" { RETURN }
 | "break"  { BREAK }
+| "continue" { CONTINUE }
 | "int"    { INT }
 | "float"  { FLOAT }
 | "char"   { CHAR }

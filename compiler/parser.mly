@@ -5,10 +5,12 @@ open Ast
 %}
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
+%token LBRACK RBRACK
 %token PLUS MINUS TIMES DIVIDE MOD ASSIGN NOT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR
 %token DOT PIPE PIPEND 
-%token RETURN IF ELIF ELSE FOR WHILE BREAK INT FLOAT 
+%token RETURN IF /*ELIF*/ ELSE FOR WHILE BREAK 
+%token CONTINUE INT FLOAT 
 %token CHAR STRING POINT CURVE CANVAS BOOL VOID
 %token <int> INT_LITERAL
 %token <float> FLOAT_LITERAL
@@ -27,6 +29,7 @@ open Ast
 %left PLUS MINUS
 %left TIMES DIVIDE
 %left MOD
+$left PIPE PIPEND
 %right NOT NEG
 
 %start program
@@ -74,7 +77,8 @@ vdecl_list:
   | vdecl_list vdecl { $2 :: $1 }
 
 vdecl:
-   typ ID SEMI { ($1, $2) }
+    typ ID SEMI { ($1, $2) }
+  | typ ID LBRACK expr RBRACK SEMI { ($1, $2, $4) }
 
 stmt_list:
     /* nothing */  { [] }
@@ -82,11 +86,14 @@ stmt_list:
 
 stmt:
     expr SEMI { Expr $1 }
+  | BREAK SEMI { Break }
+  | CONTINUE SEMI { Continue }
   | RETURN SEMI { Return Noexpr }
   | RETURN expr SEMI { Return $2 }
   | LBRACE stmt_list RBRACE { Block(List.rev $2) }
   | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
   | IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7) }
+/* else if ?? */
   | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
      { For($3, $5, $7, $9) }
   | WHILE LPAREN expr RPAREN stmt { While($3, $5) }
@@ -116,11 +123,18 @@ expr:
   | expr GEQ    expr { Binop($1, Geq,   $3) }
   | expr AND    expr { Binop($1, And,   $3) }
   | expr OR     expr { Binop($1, Or,    $3) }
+  | expr PIPE   expr { Binop($1, Pipe,  $3) }
+  | expr PIPEND expr { Binop($1, Pipend, $3) }
   | MINUS expr %prec NEG { Unop(Neg, $2) }
   | NOT expr         { Unop(Not, $2) }
   | ID ASSIGN expr   { Assign($1, $3) }
+  | ID ASSIGN array_lit { Assign($1, $3) } 
+/*  | ID LBRACK INT_LITERAL RBRACK ASSIGN expr */
   | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
   | LPAREN expr RPAREN { $2 }
+
+array_lit:
+  LBRACE actuals_opt RBRACE { ArrayLit($2) }
 
 actuals_opt:
     /* nothing */ { [] }
