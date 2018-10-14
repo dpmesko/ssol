@@ -12,6 +12,7 @@ open Ast
 %token CHAR STRING POINT CURVE CANVAS BOOL VOID
 %token <int> INT_LITERAL
 %token <float> FLOAT_LITERAL
+%token <char> CHAR_LITERAL
 %token <string> STRING_LITERAL
 %token <string> ID
 %token EOF
@@ -95,7 +96,10 @@ expr_opt:
   | expr          { $1 }
 
 expr:
-    INT_LITERAL          { Literal($1) }
+    INT_LITERAL      { IntLit($1) }
+  | FLOAT_LITERAL    { FloatLit($1) }
+  | CHAR_LITERAL     { CharLit($1) }
+  | STRING_LITERAL   { StringLit($1) }
   | TRUE             { BoolLit(true) }
   | FALSE            { BoolLit(false) }
   | ID               { Id($1) }

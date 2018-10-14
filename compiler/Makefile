@@ -5,19 +5,19 @@
 # Easiest way to build: using ocamlbuild, which in turn uses ocamlfind
 
 .PHONY : all
-all : microc.native printbig.o
+all : ssol.native printbig.o
 
-.PHONY : microc.native
-microc.native :
+.PHONY : ssol.native
+ssol.native :
 	ocamlbuild -use-ocamlfind -pkgs llvm,llvm.analysis -cflags -w,+a-4 \
-		microc.native
+		ssol.native
 
 # "make clean" removes all generated files
 
 .PHONY : clean
 clean :
 	ocamlbuild -clean
-	rm -rf testall.log *.diff microc scanner.ml parser.ml parser.mli
+	rm -rf testall.log *.diff ssol scanner.ml parser.ml parser.mli
 	rm -rf printbig
 	rm -rf *.cmx *.cmi *.cmo *.cmx *.o *.s *.ll *.out *.exe
 
