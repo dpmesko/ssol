@@ -29,8 +29,10 @@ open Ast
 %left PLUS MINUS
 %left TIMES DIVIDE
 %left MOD
-$left PIPE PIPEND
+%left PIPE PIPEND
+%left DOT
 %right NOT NEG
+
 
 %start program
 %type <Ast.program> program
