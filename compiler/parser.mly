@@ -125,6 +125,7 @@ expr:
   | expr OR     expr { Binop($1, Or,    $3) }
   | expr PIPE   expr { Binop($1, Pipe,  $3) }
   | expr PIPEND expr { Binop($1, Pipend, $3) }
+  | expr DOT ID      { Field($1, $3) }
   | MINUS expr %prec NEG { Unop(Neg, $2) }
   | NOT expr         { Unop(Not, $2) }
   | ID ASSIGN expr   { Assign($1, $3) }

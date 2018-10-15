@@ -8,7 +8,7 @@ type uop = Neg | Not
 type typ = Int | Float | Char | String | Point | Curve | Canvas | Bool | Void  |
            Array of typ * int
 
-type bind = typ * string * int option
+type bind = typ * string
 
 type expr =
     IntLit of int
@@ -19,6 +19,7 @@ type expr =
   | ArrayLit of expr list
   | Id of string
   | Binop of expr * op * expr
+  | Field of expr * expr
   | Unop of uop * expr
   | Assign of string * expr
   | Call of string * expr list
@@ -75,6 +76,7 @@ let rec string_of_expr = function
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
   | ArrayLit(arr) -> "[" ^ (List.fold_left (fun lst elem -> lst ^ " " ^ string_of_expr elem ^ ",") "" arr) ^ "]"
+  | Field(e,f) -> string_of_expr e ^ "." ^ string_of_expr f
   | Id(s) -> s
   | Binop(e1, o, e2) ->
       string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
