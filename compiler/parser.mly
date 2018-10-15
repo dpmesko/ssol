@@ -132,6 +132,7 @@ expr:
   | NOT expr         { Unop(Not, $2) }
   | ID ASSIGN expr   { Assign($1, $3) }
   | ID ASSIGN array_lit { Assign($1, $3) } 
+  | ID LBRACK expr RBRACK {Access($1, $3) }
 /*  | ID LBRACK INT_LITERAL RBRACK ASSIGN expr */
   | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
   | LPAREN expr RPAREN { $2 }

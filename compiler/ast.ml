@@ -22,6 +22,7 @@ type expr =
   | Field of expr * expr
   | Unop of uop * expr
   | Assign of string * expr
+  | Access of string * expr
   | Call of string * expr list
   | Noexpr
 
@@ -82,6 +83,7 @@ let rec string_of_expr = function
       string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Unop(o, e) -> string_of_uop o ^ string_of_expr e
   | Assign(v, e) -> v ^ " = " ^ string_of_expr e
+  | Access(l, i) -> l ^ "["^ string_of_expr i ^ "]"
   | Call(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
   | Noexpr -> ""
