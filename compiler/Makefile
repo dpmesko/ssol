@@ -23,10 +23,10 @@ clean :
 
 # More detailed: build using ocamlc/ocamlopt + ocamlfind to locate LLVM
 
-OBJS = ast.cmx codegen.cmx parser.cmx scanner.cmx semant.cmx microc.cmx
+OBJS = ast.cmx codegen.cmx parser.cmx scanner.cmx semant.cmx ssol.cmx
 
-microc : $(OBJS)
-	ocamlfind ocamlopt -linkpkg -package llvm -package llvm.analysis $(OBJS) -o microc
+ssol : $(OBJS)
+	ocamlfind ocamlopt -linkpkg -package llvm -package llvm.analysis $(OBJS) -o ssol
 
 scanner.ml : scanner.mll
 	ocamllex scanner.mll
@@ -53,8 +53,8 @@ ast.cmo :
 ast.cmx :
 codegen.cmo : ast.cmo
 codegen.cmx : ast.cmx
-microc.cmo : semant.cmo scanner.cmo parser.cmi codegen.cmo ast.cmo
-microc.cmx : semant.cmx scanner.cmx parser.cmx codegen.cmx ast.cmx
+ssol.cmo : semant.cmo scanner.cmo parser.cmi codegen.cmo ast.cmo
+ssol.cmx : semant.cmx scanner.cmx parser.cmx codegen.cmx ast.cmx
 parser.cmo : ast.cmo parser.cmi
 parser.cmx : ast.cmx parser.cmi
 scanner.cmo : parser.cmi
@@ -78,10 +78,10 @@ FAILS = assign1 assign2 assign3 dead1 dead2 expr1 expr2 for1 for2	\
 TESTFILES = $(TESTS:%=test-%.mc) $(TESTS:%=test-%.out) \
 	    $(FAILS:%=fail-%.mc) $(FAILS:%=fail-%.err)
 
-TARFILES = ast.ml codegen.ml Makefile _tags microc.ml parser.mly README \
+TARFILES = ast.ml codegen.ml Makefile _tags ssol.ml parser.mly README \
         scanner.mll semant.ml testall.sh printbig.c arcade-font.pbm font2c \
 	$(TESTFILES:%=tests/%) 
 
-microc-llvm.tar.gz : $(TARFILES)
-	cd .. && tar czf microc-llvm/microc-llvm.tar.gz \
-		$(TARFILES:%=microc-llvm/%)
+ssol-llvm.tar.gz : $(TARFILES)
+	cd .. && tar czf ssol-llvm/ssol-llvm.tar.gz \
+		$(TARFILES:%=ssol-llvm/%)

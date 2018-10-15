@@ -5,9 +5,10 @@ type op = Add | Sub | Mult | Div | Mod | Equal | Neq | Less | Leq | Greater | Ge
 
 type uop = Neg | Not
 
-type typ = Int | Float | Char | String | Point | Curve | Canvas | Bool | Void 
+type typ = Int | Float | Char | String | Point | Curve | Canvas | Bool | Void  |
+           Array of typ * int
 
-type bind = typ * string
+type bind = typ * string * int option
 
 type expr =
     IntLit of int
@@ -73,6 +74,7 @@ let rec string_of_expr = function
   | StringLit(l) -> l
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
+  | ArrayLit(arr) -> "[" ^ (List.fold_left (fun lst elem -> lst ^ " " ^ string_of_expr elem ^ ",") "" arr) ^ "]"
   | Id(s) -> s
   | Binop(e1, o, e2) ->
       string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
@@ -97,7 +99,7 @@ let rec string_of_stmt = function
   | Break -> "Break"
   | Continue -> "Continue"
 
-let string_of_typ = function
+let rec string_of_typ = function
     Int -> "int"
   | Bool -> "bool"
   | Void -> "void"
@@ -107,6 +109,7 @@ let string_of_typ = function
   | Point -> "Point"
   | Curve -> "Curve"
   | Canvas -> "Canvas"
+  | Array(t, n) -> (string_of_typ t) ^ "[" ^ (string_of_int n) ^ "]"
 
 
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
