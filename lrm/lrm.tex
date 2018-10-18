@@ -9,18 +9,18 @@
 \setlength{\textheight}{9.5in}
 \usepackage[utf8]{inputenc}
 \title{\bf SSOL Language Reference Manual}
-\author{\begin{center}
-\begin{tabular}{ c c c }
-    Madeleine Tipp & Jeevan Farias & Daniel Mesko \\
-    mrt2148 & jtf2126 & dpm2153 \\ 
-    Manager & Language Guru & System Architect 
-\end{tabular}
+\author{
+\begin{center}
+    \begin{tabular}{ c c c }
+        Madeleine Tipp & Jeevan Farias & Daniel Mesko \\
+        mrt2148 & jtf2126 & dpm2153 \\ 
+        Manager & Language Guru & System Architect 
+    \end{tabular}
 \end{center}
 }
 \date{October 15, 2018}
 
 \begin{document}
-
 \maketitle
 
 \tableofcontents
@@ -32,20 +32,22 @@ SSOL is a programming language that allows users to create shapes algorithmicall
 
 \section{Lexical Conventions}
 \subsection{Identifiers}
-Identifiers consist of one of more characters where the leading character is a uppercase or lowercase letter followed by a sequence uppercase/lowercase letters, digits and possibly underscores. Identifiers are primarily used variable declaration.
+Identifiers consist of one of more characters where the leading character is a uppercase or lowercase letter followed by a sequence uppercase/lowercase letters, digits and possibly underscores. Identifiers are primarily used in variable declaration.
 
 \subsection{Keywords}
 \begin{center}
 \begin{tabular}{ |c c| }
     \hline 
-    \bf Keyword & \bf Usage \\
+    \bf Keyword & \bf Definition \\
     \hline
     if & initiates a typical if-elif-else control flow statement \\
-    elif \\   
-    else \\
+    elif & \\   
+    else & \\
     while & initiates a while loop \\
-    for & initaites a for loop \\
-    return & returns the acommpanying value (must be of the appropriate return type) \\
+    for & initiates a for loop \\
+    break & ends a loop\\
+    continue & skips an interation of a loop\\
+    return & returns the accompanying value (must be of the appropriate return type) \\
     void & used to identify a function that does not return a value \\
     int & type identifier for int \\
     float & type identifier for float \\
@@ -55,12 +57,45 @@ Identifiers consist of one of more characters where the leading character is a u
     Point & type identifier for Point \\
     Curve & type identifier for Curve \\
     Canvas & type identifier for Canvas \\
+    true & literal Boolean value\\
+    false & literal Boolean value\\
     \hline
 \end{tabular}
 \end{center}
 
+\subsection{Literals}
+\begin{center}
+\begin{tabular}{ |c p{12cm}| }
+    \hline 
+    \bf Type  & \bf Definition \\
+    \hline
+    Int & A sequence of one or more digits representing an un-named(not associated with any identifier) integer, with the leading digit being non-zero (i.e. [1-9][0-9]*)\\
+    &\\
+    Float & A sequence of digits seperated by a ’.’ representing an un-named float-point number (i.e. [0-9]*.[0- 9][0- 9]*)\\
+    &\\
+    Char & A single character enclosed by single quotation marks representing an un-names character. (i.e. ‘.’)\\
+    &\\
+    String & A sequence of characters enclosed by a pair of double quotation marks representing an un-named string. (i.e. ˆ “.*” \$)\\
+    &\\
+    Bool & 8-bit boolean variable, either $true$ or $false$\\
+    \hline
+    
+\end{tabular}
+\end{center}
+\subsection{Comment}
+SSOL supports single line and multi-line comments. Single line comments are initiated by two “/” characters. (i.e. //), and are terminated by a newline character. Multi-line comments are initiated by the character sequence '/*` and terminated by the character sequence '*/*.
 
+\begin{verbatim}
+// This is a single line comment
 
+/* This is a
+     multi-line comment */
+\end{verbatim}
+
+\subsection{Punctuator}
+SSOL requires a character for sequencing and to make explicit the end of an operation. Terminate every line of code with a semicolon ($;$).
+\subsubsection{Whitespace}
+Whitespace (space, tabs, and newlines) is unimportant in SSOL.
 
 \section{Types}
 \subsection{Primitives}
@@ -71,7 +106,7 @@ Identifiers consist of one of more characters where the leading character is a u
     \hline
     int & 4 byte signed integer \\
     double & 8 byte floating-point decimal number \\
-    bool & 1 byte boolean value \\
+    bool & 1 byte Boolean value \\
     char & 1 byte ASCII character \\
     String & array of ASCII characters \\
     \hline
@@ -79,10 +114,10 @@ Identifiers consist of one of more characters where the leading character is a u
 \end{center}
 
 \subsection{Complex Types}
-The following built-in complex data types are represented as objects with member fields and are instantiated using their associated constructors. The individual fields of the objects can be accessed and modified with $.$ notation: \begin{verbatim} object.field \end{verbatim}
+The following built-in complex data types are represented as objects with member fields and are instantiated using their associated constructors. The individual fields of the objects can be accessed and modified with $.$ notation, ex: \texttt{object.field}
 
 \subsubsection{Point}
-A Point object contains two fields: an $x$ and a $y$ coordinate value, both of type \texttt{double}. \\
+A Point object contains two fields: an $x$ and a $y$ coordinate value, both of type \texttt{float}. \\
 A Point object is instantiated using its sole constructor: 
 \begin{verbatim}
     Point(double x, double y)
@@ -153,12 +188,12 @@ Use brackets and an index to retrieve a value from an array. The specified index
 \end{verbatim}
 \subsection{Operators}
 \subsubsection{Arithmetic}
-Addition (+), subtraction (-), multiplication (*), and division (/) are standard arithmetic operators in SSOL which comply with order of operations. Increment (++) and decement (--) are also valid operators. These are all valid operations for both $int$ and $float$, but cannot be used on $int$ and $float$ together.
+Addition (+), subtraction (-), multiplication (*), division (/), and modulo (\%) are standard arithmetic operators in SSOL which comply with order of operations. Increment (++) and decement (--) are also valid operators. These are all valid operations for both $int$ and $float$, but cannot be used on $int$ and $float$ together.
 \subsubsection{Comparison}
-Comparison in SSOL is done via ==, !=, \textless ,\textgreater,\textless=, and \textgreater=. Only matching types can be compared. These operators return a boolean value of $true$ or $false$
+Comparison in SSOL is done via ==, !=, \textless ,\textgreater,\textless=, and \textgreater=. Only matching types can be compared. These operators return a Boolean value of $true$ or $false$
 
 \subsubsection{Logical}
-SSOL can perform logical operations of boolean values with \texttt\&\& and $||$.
+SSOL can perform logical operations of Boolean values with \texttt\&\& (AND),  $||$ (OR), and $!$ (NOT).
 \begin{verbatim}
     bool b1 = true && true;
     bool b2 = false || false;
@@ -167,18 +202,32 @@ SSOL can perform logical operations of boolean values with \texttt\&\& and $||$.
 \subsubsection{Assignment}
 The assignment statement is of the form \texttt{[identifier-type] <identifier> = expression}. The \texttt{[identifier-type]} field can be omitted if \texttt{identifier} has already been declared.
 
+\subsubsection{Canvas}
+The Canvas object of SSOL has a set of unique operators for sequencing and addition to a the canvas. 
+\begin{center}
+    \begin{tabular}{|c|c|}
+        \hline
+        $|$ & Use pipe to sequence Point and Curve objects \\
+        $|=$ & Use pipend to add an object or sequence of objects to the canvas\\
+        \hline
+    \end{tabular}
+\end{center}
+Ex. \begin{verbatim}
+    canvas |= crv1 | crv2 | crv3 | crv4;
+\end{verbatim}
+
 \subsection{Statements}
 
 \subsubsection{Sequencing}
 Consecutive statements are sequenced using the \texttt{;} operator.
 \subsubsection{Control Flow}
-SSOL supports the standard \texttt{if...else if...else} format of conditional statements. 
-\texttt{if} and \texttt{else if} require a boolean statement to be evaluated.
+SSOL supports the standard \texttt{if...elif...else} format of conditional statements. 
+\texttt{if} and \texttt{elif} require a Boolean statement to be evaluated.
 \begin{verbatim}
     int i = 3;
     if(i>4){
         print("i > 4");
-    } else if (i==3){
+    } elif(i==3){
         print("i = 3");
     } else {
         print("who is i");
@@ -186,7 +235,7 @@ SSOL supports the standard \texttt{if...else if...else} format of conditional st
 \end{verbatim}
 \subsubsection{Loops}
 SSOL supports \texttt{\bf for} loops and \texttt{\bf while} loops. For loops are an iterative construct that requires a starting index variable, a bounding condition, and an operation to be performed at the end of each iteration.\\
-A \texttt{\bf while} loop requires a boolean expression to be evaluated every time the loop is executed.
+A \texttt{\bf while} loop requires a Boolean expression to be evaluated every time the loop is executed.
 \begin{verbatim}
     for(int i = 0; i<arr.length; i++){
         <loop-body>
