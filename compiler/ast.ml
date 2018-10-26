@@ -1,28 +1,29 @@
 (* Abstract Syntax Tree and functions for printing it *)
 
-type op = Add | Sub | Mult | Div | Mod | Equal | Neq | Less | Leq | Greater | Geq |
-          And | Or | Pipe | Pipend 
+type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
+          And | Or | Pipe | Pipend
 
 type uop = Neg | Not
 
-type typ = Int | Float | Char | String | Point | Curve | Canvas | Bool | Void  |
-           Array of typ * int
+type typ = Int | Bool | Float | Void | Char | String | Point | Curve | Canvas 
+		       | Array of typ * int
 
 type bind = typ * string
 
 type expr =
-    IntLit of int
-  | FloatLit of float
+    Literal of int
+  | Fliteral of string
+  | BoolLit of bool
   | CharLit of char
   | StringLit of string
-  | BoolLit of bool
-  | ArrayLit of expr list
+  | ArrayLit of expr list 
   | Id of string
   | Binop of expr * op * expr
   | Field of expr * expr
   | Unop of uop * expr
   | Assign of string * expr
   | Access of string * expr
+  | ArrayAssign of string * expr * expr
   | Call of string * expr list
   | Noexpr
 
@@ -33,8 +34,6 @@ type stmt =
   | If of expr * stmt * stmt
   | For of expr * expr * expr * stmt
   | While of expr * stmt
-  | Break
-  | Continue
 
 type func_decl = {
     typ : typ;
@@ -53,7 +52,6 @@ let string_of_op = function
   | Sub -> "-"
   | Mult -> "*"
   | Div -> "/"
-  | Mod -> "%"
   | Equal -> "=="
   | Neq -> "!="
   | Less -> "<"
@@ -70,12 +68,12 @@ let string_of_uop = function
   | Not -> "!"
 
 let rec string_of_expr = function
-    IntLit(l) -> string_of_int l
-  | FloatLit(l) -> string_of_float l
-  | CharLit(l) -> Printf.sprintf "%c" l
-  | StringLit(l) -> l
+    Literal(l) -> string_of_int l
+  | Fliteral(l) -> l
   | BoolLit(true) -> "true"
   | BoolLit(false) -> "false"
+  | CharLit(l) -> String.make 1 l
+  | StringLit(l) -> l
   | ArrayLit(arr) -> "[" ^ (List.fold_left (fun lst elem -> lst ^ " " ^ string_of_expr elem ^ ",") "" arr) ^ "]"
   | Field(e,f) -> string_of_expr e ^ "." ^ string_of_expr f
   | Id(s) -> s
@@ -83,7 +81,8 @@ let rec string_of_expr = function
       string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
   | Unop(o, e) -> string_of_uop o ^ string_of_expr e
   | Assign(v, e) -> v ^ " = " ^ string_of_expr e
-  | Access(l, i) -> l ^ "["^ string_of_expr i ^ "]"
+  | Access(a, i) -> a ^ "[" ^ string_of_expr i ^ "]"
+  | ArrayAssign(arr, index, rval) -> arr ^ "[" ^ string_of_expr index ^ "]" ^ string_of_expr rval
   | Call(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
   | Noexpr -> ""
@@ -100,21 +99,18 @@ let rec string_of_stmt = function
       "for (" ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^
       string_of_expr e3  ^ ") " ^ string_of_stmt s
   | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
-  | Break -> "Break"
-  | Continue -> "Continue"
 
 let rec string_of_typ = function
     Int -> "int"
   | Bool -> "bool"
-  | Void -> "void"
   | Float -> "float"
+  | Void -> "void"
   | Char -> "char"
-  | String -> "string"
+  | String -> "String"
   | Point -> "Point"
   | Curve -> "Curve"
   | Canvas -> "Canvas"
   | Array(t, n) -> (string_of_typ t) ^ "[" ^ (string_of_int n) ^ "]"
-
 
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 

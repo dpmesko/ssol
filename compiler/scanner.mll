@@ -1,6 +1,9 @@
 (* Ocamllex scanner for MicroC *)
 
-{ open Parser }
+{ open Microcparse }
+
+let digit = ['0' - '9']
+let digits = digit+
 
 rule token = parse
   [' ' '\t' '\r' '\n'] { token lexbuf } (* Whitespace *)
@@ -14,7 +17,7 @@ rule token = parse
 | ']'      { RBRACK }
 | ';'      { SEMI }
 | ','      { COMMA }
-| '.'      { DOT } 
+| '.'      { DOT }
 | '+'      { PLUS }
 | '-'      { MINUS }
 | '*'      { TIMES }
@@ -29,9 +32,9 @@ rule token = parse
 | ">="     { GEQ }
 | "&&"     { AND }
 | "||"     { OR }
-| "!"      { NOT }
-| "|"      { PIPE }
+| '|'	   { PIPE }
 | "|="     { PIPEND }
+| "!"      { NOT }
 | "if"     { IF }
 (*| "elif"   { ELIF }*)
 | "else"   { ELSE }
@@ -41,22 +44,22 @@ rule token = parse
 | "break"  { BREAK }
 | "continue" { CONTINUE }
 | "int"    { INT }
+| "bool"   { BOOL }
 | "float"  { FLOAT }
+| "void"   { VOID }
 | "char"   { CHAR }
 | "String" { STRING }
 | "Point"  { POINT }
 | "Curve"  { CURVE }
 | "Canvas" { CANVAS }
-| "bool"   { BOOL }
-| "void"   { VOID }
-| "true"   { TRUE }
-| "false"  { FALSE }
-| ['0'-'9']+ as lxm { INT_LITERAL(int_of_string lxm) }
-| ['0'-'9']* '.'['0'-'9']+ as lxm { FLOAT_LITERAL(float_of_string lxm)} 
-| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
+| "true"   { BLIT(true)  }
+| "false"  { BLIT(false) }
+| digits as lxm { LITERAL(int_of_string lxm) }
+| digits '.'  digit* ( ['e' 'E'] ['+' '-']? digits )? as lxm { FLIT(lxm) }
+| ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']*     as lxm { ID(lxm) }
+| eof { EOF }
 | ''' (_ as ch) ''' { CHAR_LITERAL(ch) }
 | '"' ([^ '"']* as str) '"' { STRING_LITERAL(str) }
-| eof { EOF }
 | _ as char { raise (Failure("illegal character " ^ Char.escaped char)) }
 
 and comment = parse
@@ -64,5 +67,5 @@ and comment = parse
 | _    { comment lexbuf }
 
 and single = parse
-  '\n' { single lexbuf }
-| _    { token lexbuf }
+  '\n' { token lexbuf }
+| _    { single lexbuf }
