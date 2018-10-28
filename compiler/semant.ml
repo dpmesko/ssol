@@ -42,6 +42,7 @@ let check (globals, functions) =
 			                         ("printb", Bool);
 			                         ("printf", Float);
 			                         ("printbig", Int) ]
+							(* TODO: add draw() *)
   in
 
   (* Add function name to symbol table *)
@@ -75,7 +76,10 @@ let check (globals, functions) =
 
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
-    let check_assign lvaluet rvaluet err =
+
+	(* TODO: Add array pattern to this?? *)
+
+	let check_assign lvaluet rvaluet err =
        if lvaluet = rvaluet then lvaluet else raise (Failure err)
     in   
 
@@ -91,6 +95,9 @@ let check (globals, functions) =
     in
 
     (* Return a semantically-checked expression, i.e., with a type *)
+
+	(*TODO: Add CharLit, StringLit, ArrayLit, Field, Access, ArrayAssign logic *)
+
     let rec expr = function
         Literal  l -> (Int, SLiteral l)
       | Fliteral l -> (Float, SFliteral l)
@@ -153,6 +160,9 @@ let check (globals, functions) =
     in
 
     (* Return a semantically-checked statement i.e. containing sexprs *)
+
+	(*TODO: Add VDecl, VDeclAssign, ADecl logic *)
+
     let rec check_stmt = function
         Expr e -> SExpr (expr e)
       | If(p, b1, b2) -> SIf(check_bool_expr p, check_stmt b1, check_stmt b2)
