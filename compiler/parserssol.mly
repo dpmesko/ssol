@@ -79,15 +79,21 @@ vdecl_list:
 
 vdecl:
     typ ID SEMI { ($1, $2) }
-  | typ ID LBRACK expr RBRACK SEMI { ($1, $2, $4) }
 
 stmt_list:
     /* nothing */  { [] }
   | stmt_list stmt { $2 :: $1 }
 
+vdecl_stmt:
+    typ ID SEMI { VDecl($1, $2) }
+  |	typ ID ASSIGN expr SEMI { VDeclAssign($1, $2, $4) }
+  |	typ ID ASSIGN array_lit SEMI { VDeclAssign($1, $2, $4) }
+  | typ ID LBRACK expr RBRACK SEMI { ADecl($1, $2, $4) }
+
 /* FIGURE OUT BREAK,CONTINUE RULE */
 stmt:
     expr SEMI                               { Expr $1               }
+  | vdecl_stmt								{ $1 					}
   | RETURN expr_opt SEMI                    { Return $2             }
   | LBRACE stmt_list RBRACE                 { Block(List.rev $2)    }
   | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
@@ -122,7 +128,7 @@ expr:
   | expr OR     expr { Binop($1, Or,    $3)   }
   | expr PIPE   expr { Binop($1, Pipe,  $3)   }
   | expr PIPEND expr { Binop($1, Pipend, $3)  }
-  | expr DOT    ID   { Field($1, $3)          } 
+  | ID   DOT    expr   { Field($1, $3)          } 
   | MINUS expr %prec NOT { Unop(Neg, $2)      }
   | NOT expr         { Unop(Not, $2)          }
   | ID ASSIGN expr   { Assign($1, $3)         }

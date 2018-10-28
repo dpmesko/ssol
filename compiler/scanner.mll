@@ -1,6 +1,6 @@
 (* Ocamllex scanner for MicroC *)
 
-{ open Microcparse }
+{ open Parserssol }
 
 let digit = ['0' - '9']
 let digits = digit+

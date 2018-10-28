@@ -1,6 +1,6 @@
 (* Abstract Syntax Tree and functions for printing it *)
 
-type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
+type op = Add | Sub | Mult | Div | Mod | Equal | Neq | Less | Leq | Greater | Geq |
           And | Or | Pipe | Pipend
 
 type uop = Neg | Not
@@ -19,7 +19,7 @@ type expr =
   | ArrayLit of expr list 
   | Id of string
   | Binop of expr * op * expr
-  | Field of expr * expr
+  | Field of string * expr
   | Unop of uop * expr
   | Assign of string * expr
   | Access of string * expr
@@ -28,7 +28,10 @@ type expr =
   | Noexpr
 
 type stmt =
-    Block of stmt list
+    VDecl of typ * string
+  | VDeclAssign of typ * string * expr
+  | ADecl of typ * string * expr
+  | Block of stmt list
   | Expr of expr
   | Return of expr
   | If of expr * stmt * stmt
@@ -52,6 +55,7 @@ let string_of_op = function
   | Sub -> "-"
   | Mult -> "*"
   | Div -> "/"
+  | Mod -> "%"
   | Equal -> "=="
   | Neq -> "!="
   | Less -> "<"
@@ -75,7 +79,7 @@ let rec string_of_expr = function
   | CharLit(l) -> String.make 1 l
   | StringLit(l) -> l
   | ArrayLit(arr) -> "[" ^ (List.fold_left (fun lst elem -> lst ^ " " ^ string_of_expr elem ^ ",") "" arr) ^ "]"
-  | Field(e,f) -> string_of_expr e ^ "." ^ string_of_expr f
+  | Field(s,f) -> s ^ "." ^ string_of_expr f
   | Id(s) -> s
   | Binop(e1, o, e2) ->
       string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
@@ -86,19 +90,6 @@ let rec string_of_expr = function
   | Call(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
   | Noexpr -> ""
-
-let rec string_of_stmt = function
-    Block(stmts) ->
-      "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
-  | Expr(expr) -> string_of_expr expr ^ ";\n";
-  | Return(expr) -> "return " ^ string_of_expr expr ^ ";\n";
-  | If(e, s, Block([])) -> "if (" ^ string_of_expr e ^ ")\n" ^ string_of_stmt s
-  | If(e, s1, s2) ->  "if (" ^ string_of_expr e ^ ")\n" ^
-      string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
-  | For(e1, e2, e3, s) ->
-      "for (" ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^
-      string_of_expr e3  ^ ") " ^ string_of_stmt s
-  | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
 
 let rec string_of_typ = function
     Int -> "int"
@@ -111,6 +102,23 @@ let rec string_of_typ = function
   | Curve -> "Curve"
   | Canvas -> "Canvas"
   | Array(t, n) -> (string_of_typ t) ^ "[" ^ (string_of_int n) ^ "]"
+
+let rec string_of_stmt = function
+    VDecl(t, i) -> string_of_typ t ^ " " ^ i ^ "\n"
+  | VDeclAssign(t, i, e) -> string_of_typ t ^ " " ^ i ^ " = " ^ string_of_expr e ^ "\n"
+  | ADecl(t, i, s) -> string_of_typ t ^ " " ^ i ^ "[" ^ string_of_expr s ^ "]\n"
+  | Block(stmts) ->
+      "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
+  | Expr(expr) -> string_of_expr expr ^ ";\n";
+  | Return(expr) -> "return " ^ string_of_expr expr ^ ";\n";
+  | If(e, s, Block([])) -> "if (" ^ string_of_expr e ^ ")\n" ^ string_of_stmt s
+  | If(e, s1, s2) ->  "if (" ^ string_of_expr e ^ ")\n" ^
+      string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
+  | For(e1, e2, e3, s) ->
+      "for (" ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^
+      string_of_expr e3  ^ ") " ^ string_of_stmt s
+  | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
+
 
 let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
 
