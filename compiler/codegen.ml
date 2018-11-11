@@ -28,8 +28,9 @@ let translate (globals, functions) =
 
   (* Get types from the context *)
   let i32_t      = L.i32_type    context
-  and i8_t       = L.i8_type     context
+  and i8_t       = L.i8_type     context 
   and i1_t       = L.i1_type     context
+  and str_t	 = L.pointer_type (L.i8_type context)
   and float_t    = L.double_type context
   and void_t     = L.void_type   context in
 
@@ -39,6 +40,8 @@ let translate (globals, functions) =
     | A.Bool  -> i1_t
     | A.Float -> float_t
     | A.Void  -> void_t
+    | A.String -> str_t
+    | A.Char  -> i8_t
   in
 
   (* Create a map of global variables after creating each *)
@@ -54,11 +57,13 @@ let translate (globals, functions) =
       L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
   let printf_func : L.llvalue = 
       L.declare_function "printf" printf_t the_module in
-
   let printbig_t : L.lltype =
       L.function_type i32_t [| i32_t |] in
   let printbig_func : L.llvalue =
       L.declare_function "printbig" printbig_t the_module in
+  let sprintf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t ; L.pointer_type i8_t |] in
+  let sprint_func =
+      L.declare_function "sprintf" sprintf_t the_module in
 
   (* Define each function (arguments and return type) so we can 
      call it even before we've created its body *)
@@ -77,6 +82,7 @@ let translate (globals, functions) =
     let builder = L.builder_at_end context (L.entry_block the_function) in
 
     let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
+    and char_format_str = L.build_global_stringptr "%c\n" "fmt" builder
     and float_format_str = L.build_global_stringptr "%g\n" "fmt" builder in
 
     (* Construct the function's "locals": formal arguments and locally
@@ -112,6 +118,7 @@ let translate (globals, functions) =
 	SLiteral i  -> L.const_int i32_t i
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
       | SFliteral l -> L.const_float_of_string float_t l
+      | SStringLit l -> L.build_global_stringptr l "str" builder
       | SNoexpr     -> L.const_int i32_t 0
       | SId s       -> L.build_load (lookup s) s builder
       | SAssign (s, e) -> let e' = expr builder e in
@@ -123,7 +130,8 @@ let translate (globals, functions) =
 	    A.Add     -> L.build_fadd
 	  | A.Sub     -> L.build_fsub
 	  | A.Mult    -> L.build_fmul
-	  | A.Div     -> L.build_fdiv 
+	  | A.Div     -> L.build_fdiv
+	  | A.Mod     -> L.build_srem 
 	  | A.Equal   -> L.build_fcmp L.Fcmp.Oeq
 	  | A.Neq     -> L.build_fcmp L.Fcmp.One
 	  | A.Less    -> L.build_fcmp L.Fcmp.Olt
@@ -141,6 +149,7 @@ let translate (globals, functions) =
 	  | A.Sub     -> L.build_sub
 	  | A.Mult    -> L.build_mul
           | A.Div     -> L.build_sdiv
+	  | A.Mod     -> L.build_srem
 	  | A.And     -> L.build_and
 	  | A.Or      -> L.build_or
 	  | A.Equal   -> L.build_icmp L.Icmp.Eq
@@ -164,13 +173,10 @@ let translate (globals, functions) =
       | SCall ("printf", [e]) -> 
 	  L.build_call printf_func [| float_format_str ; (expr builder e) |]
 	    "printf" builder
-      | SCall (f, args) ->
-         let (fdef, fdecl) = StringMap.find f function_decls in
-	 let llargs = List.rev (List.map (expr builder) (List.rev args)) in
-	 let result = (match fdecl.styp with 
-                        A.Void -> ""
-                      | _ -> f ^ "_result") in
-         L.build_call fdef (Array.of_list llargs) result builder
+      | SCall ("sprintf", [e]) ->
+	  L.build_call sprint_func [| char_format_str ; (expr builder e) |]
+	    "sprintf" builder 
+
     in
     
     (* LLVM insists each basic block end with exactly one "terminator" 

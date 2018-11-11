@@ -109,7 +109,7 @@ expr_opt:
 
 expr:
     LITERAL          { Literal($1)            }
-  | FLIT	         { Fliteral($1)           }
+  | FLIT	     { Fliteral($1)           }
   | BLIT             { BoolLit($1)            }
   | ID               { Id($1)                 }
   | CHAR_LITERAL     { CharLit($1)            }
