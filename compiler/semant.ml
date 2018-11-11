@@ -126,6 +126,23 @@ let check (globals, functions) =
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
           in (check_assign lt rt err, SAssign(var, (rt, e')))
+			| Access(arr, ind) ->
+					let arrtyp = type_of_identifier arr 
+					and (ty', ex') as ind' = expr ind in 
+					(*if ty' != Int then
+				  	raise (Failure ("expected Int for array index value, but was given " ^ string_of_sexpr ind')) *)
+					(*let checklen = match arrytp with
+							Array(t, s) -> if ex' > s then
+								raise (Failure ("index " ^ string_of_sexpr ind' ^ " out of range")*)
+					let retval = match arrtyp with
+						  Array(t, s) -> (Array(t,s), SAccess(arr, ind'))
+				    | _ -> raise (Failure ("cannot access index " ^ string_of_sexpr ind' ^ " of " ^ arr ^ ": it has type " ^ string_of_typ arrtyp))
+					in retval
+			| ArrayAssign(arr, ind, ex) -> 
+		 			let arrtyp = type_of_identifier arr
+				  and ind' = expr ind
+					and ex'= expr ex in
+					(arrtyp, SArrayAssign(arr, ind', ex'))
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
