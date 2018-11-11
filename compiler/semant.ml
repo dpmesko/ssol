@@ -41,8 +41,10 @@ let check (globals, functions) =
     in List.fold_left add_bind StringMap.empty [ ("print", Int);
 			                         ("printb", Bool);
 			                         ("printf", Float);
-			                         ("printbig", Int) ]
-							(* TODO: add draw() *)
+			                         ("printbig", Int)
+						 ("sprint", String) ] 
+						(* add draw() *)
+  
   in
 
   (* Add function name to symbol table *)
@@ -101,9 +103,12 @@ let check (globals, functions) =
     let rec expr = function
         Literal  l -> (Int, SLiteral l)
       | Fliteral l -> (Float, SFliteral l)
+      | CharLit  l -> (Char, SCharLit l)
+      | StringLit l-> (String, SStringLit l)
       | BoolLit l  -> (Bool, SBoolLit l)
       | Noexpr     -> (Void, SNoexpr)
       | Id s       -> (type_of_identifier s, SId s)
+      (* | array_lit al -> *)
       | Assign(var, e) as ex -> 
           let lt = type_of_identifier var
           and (rt, e') = expr e in
