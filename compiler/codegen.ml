@@ -41,6 +41,7 @@ let translate (globals, functions) =
     | A.Float -> float_t
     | A.Void  -> void_t
     | A.String -> str_t
+    | A.Char  -> i8_t
   in
 
   (* Create a map of global variables after creating each *)
@@ -81,7 +82,7 @@ let translate (globals, functions) =
     let builder = L.builder_at_end context (L.entry_block the_function) in
 
     let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
-    and char_format_str = L.build_glocal_stringptr "%c\n" "fmt" builder
+    and char_format_str = L.build_global_stringptr "%c\n" "fmt" builder
     and float_format_str = L.build_global_stringptr "%g\n" "fmt" builder in
 
     (* Construct the function's "locals": formal arguments and locally
@@ -129,7 +130,8 @@ let translate (globals, functions) =
 	    A.Add     -> L.build_fadd
 	  | A.Sub     -> L.build_fsub
 	  | A.Mult    -> L.build_fmul
-	  | A.Div     -> L.build_fdiv 
+	  | A.Div     -> L.build_fdiv
+	  | A.Mod     -> L.build_srem 
 	  | A.Equal   -> L.build_fcmp L.Fcmp.Oeq
 	  | A.Neq     -> L.build_fcmp L.Fcmp.One
 	  | A.Less    -> L.build_fcmp L.Fcmp.Olt
