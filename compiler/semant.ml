@@ -81,9 +81,9 @@ let check (globals, functions) =
 	   match lvaluet with
            Array(lt, _) ->
               (match rvaluet with
-                  Array(rt, _) -> if lt == rt then lvaluet else raise err
-                | _ -> raise err)
-         | _ -> if lvaluet == rvaluet then lvaluet else raise err 
+                  Array(rt, _) -> if lt == rt then lvaluet else raise (Failure err)
+                | _ -> raise (Failure err))
+         | _ -> if lvaluet == rvaluet then lvaluet else raise (Failure err)
     in   
 
     (* Build local symbol table of variables for this function *)
@@ -107,19 +107,17 @@ let check (globals, functions) =
       | BoolLit l   -> (Bool, SBoolLit l)
       | CharLit l   -> (Char, SCharLit l)
       | StringLit l -> (String, SStringLit l)
-      | ArrayLit elist ->
-	 	(* separate pairs one by one *) 
-          let slist = List.map expr elist in
-          let rec typmatch t (x::xs) = 
-			if t == (fst x) then
+      | ArrayLit elist -> 
+      		let slist = List.map expr elist in
+(*           let rec typmatch t (x::xs) = 
+		  		if t == (fst x) then
 				if xs == [] then
-					t		
+					t
 				else
-			    	typmatch t xs
+					typmatch t xs
 			else
-			    raise (Failure ("array elements are not of same type"))
-		  in
-		   (List.fold_left typmatch (fst (List.hd slist)) slist, SArrayLit (exlist)
+				raise (Failure ("array elements are not of same type")) *)
+		  	  (Array(fst (List.hd slist), List.length slist), SArrayLit(slist))
       | Noexpr      -> (Void, SNoexpr)
       | Id s        -> (type_of_identifier s, SId s)
       | Assign(var, e) as ex -> 
