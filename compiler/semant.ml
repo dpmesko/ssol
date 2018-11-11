@@ -42,7 +42,7 @@ let check (globals, functions) =
 			                         ("printb", Bool);
 			                         ("printf", Float);
 			                         ("printbig", Int);
-						 ("sprint", String) ] 
+						 									 ("sprint", String) ] 
 						(* add draw() *)
   
   in
