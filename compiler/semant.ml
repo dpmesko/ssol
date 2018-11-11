@@ -77,10 +77,13 @@ let check (globals, functions) =
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
 
-	(* TODO: Add array pattern to this?? *)
-
 	let check_assign lvaluet rvaluet err =
-       if lvaluet = rvaluet then lvaluet else raise (Failure err)
+	   match lvaluet with
+           Array(lt, _) ->
+              (match rvaluet with
+                  Array(rt, _) -> if lt == rt then lvaluet else raise err
+                | _ -> raise err)
+         | _ -> if lvaluet == rvaluet then lvaluet else raise err 
     in   
 
     (* Build local symbol table of variables for this function *)
@@ -96,14 +99,29 @@ let check (globals, functions) =
 
     (* Return a semantically-checked expression, i.e., with a type *)
 
-	(*TODO: Add CharLit, StringLit, ArrayLit, Field, Access, ArrayAssign logic *)
+	(*TODO: add Field, Access, ArrayAssign logic *)
 
     let rec expr = function
-        Literal  l -> (Int, SLiteral l)
-      | Fliteral l -> (Float, SFliteral l)
-      | BoolLit l  -> (Bool, SBoolLit l)
-      | Noexpr     -> (Void, SNoexpr)
-      | Id s       -> (type_of_identifier s, SId s)
+        Literal  l  -> (Int, SLiteral l)
+      | Fliteral l  -> (Float, SFliteral l)
+      | BoolLit l   -> (Bool, SBoolLit l)
+      | CharLit l   -> (Char, SCharLit l)
+      | StringLit l -> (String, SStringLit l)
+      | ArrayLit elist ->
+	 	(* separate pairs one by one *) 
+          let slist = List.map expr elist in
+          let rec typmatch t (x::xs) = 
+			if t == (fst x) then
+				if xs == [] then
+					t		
+				else
+			    	typmatch t xs
+			else
+			    raise (Failure ("array elements are not of same type"))
+		  in
+		   (List.fold_left typmatch (fst (List.hd slist)) slist, SArrayLit (exlist)
+      | Noexpr      -> (Void, SNoexpr)
+      | Id s        -> (type_of_identifier s, SId s)
       | Assign(var, e) as ex -> 
           let lt = type_of_identifier var
           and (rt, e') = expr e in
