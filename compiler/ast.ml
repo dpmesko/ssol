@@ -25,6 +25,7 @@ type expr =
   | Access of string * expr
   | ArrayAssign of string * expr * expr
   | Call of string * expr list
+	| Constructor of typ * expr list
   | Noexpr
 
 type stmt =

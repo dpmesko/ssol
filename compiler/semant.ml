@@ -42,7 +42,8 @@ let check (globals, functions) =
 			                         ("printb", Bool);
 			                         ("printf", Float);
 			                         ("printbig", Int);
-						 									 ("sprint", String) ] 
+						 									 ("sprint", String);
+	 														 ("draw", String)] 
 						(* add draw() *)
   
   in
@@ -145,6 +146,9 @@ let check (globals, functions) =
 				  and ind' = expr ind
 					and ex'= expr ex in
 					(arrtyp, SArrayAssign(arr, ind', ex'))
+			| Field(obj, mem) -> 
+					let smem = expr mem in
+					(fst smem, SField(obj, smem))
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
@@ -186,6 +190,9 @@ let check (globals, functions) =
           in 
           let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall(fname, args'))
+			| Constructor(ty, exl) -> 
+					let sexl = List.map expr exl in
+					(ty, SConstructor(ty, sexl))
     in
 
     let check_bool_expr e = 

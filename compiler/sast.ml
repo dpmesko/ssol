@@ -12,13 +12,14 @@ and sx =
   | SArrayLit of sexpr list
   | SId of string
   | SBinop of sexpr * op * sexpr
-  | SField of sexpr * sexpr
+  | SField of string * sexpr
   | SUnop of uop * sexpr
   | SAssign of string * sexpr
   | SAccess of string * sexpr
   | SArrayAssign of string * sexpr * sexpr
   | SCall of string * sexpr list
-  | SNoexpr
+  | SConstructor of typ * sexpr list
+	| SNoexpr
 
 type sstmt =
     SVDecl of typ * string
@@ -52,7 +53,7 @@ let rec string_of_sexpr (t, e) =
   | SCharLit(l) -> String.make 1 l
   | SStringLit(l) -> l
   | SArrayLit(arr) -> "[" ^ (List.fold_left (fun lst elem -> lst ^ " " ^ string_of_sexpr elem ^ ",") "" arr) ^ "]"
-  | SField(e,f) -> string_of_sexpr e ^ "." ^ string_of_sexpr f
+  | SField(e,f) -> e ^ "." ^ string_of_sexpr f
   | SId(s) -> s
   | SBinop(e1, o, e2) ->
       string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2

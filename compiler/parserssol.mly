@@ -136,7 +136,7 @@ expr:
   | ID LBRACK expr RBRACK { Access($1, $3)    }
   | ID LBRACK expr RBRACK ASSIGN expr { ArrayAssign($1, $3, $6) }
   | ID LPAREN args_opt RPAREN { Call($1, $3)  }
-  | typ LPAREN args_opt RPAREN { Call($1, $3) }
+  | typ LPAREN args_opt RPAREN { Constructor($1, $3) }
 	| LPAREN expr RPAREN { $2                   }
 
 array_lit:
