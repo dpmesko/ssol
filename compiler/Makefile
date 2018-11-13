@@ -28,6 +28,7 @@ clean :
 	ocamlbuild -clean
 	rm -rf testall.log ocamlllvm *.diff
 	rm -f *.err *.ll
+	rm draw.o svg.o
 
 # Testing the "printbig" example
 
