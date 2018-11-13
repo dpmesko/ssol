@@ -1,0 +1,6 @@
+#!/bin/sh
+./ssol.native < $1.ssol > $1.ll
+llc $1.ll
+gcc -o $1 -fPIC $1.s printbig.o draw.o svg.o
+rm $1.ll $1.s
+./$1

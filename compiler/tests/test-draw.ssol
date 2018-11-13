@@ -1,5 +1,5 @@
 int main()
 {
-	draw("hello world");
+	printbig(1);
 	return 0;
 }
