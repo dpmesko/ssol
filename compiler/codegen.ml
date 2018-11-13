@@ -64,6 +64,10 @@ let translate (globals, functions) =
   let sprintf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t ; L.pointer_type i8_t |] in
   let sprint_func =
       L.declare_function "sprintf" sprintf_t the_module in
+	let draw_t : L.lltype = 
+ 			L.function_type i32_t [| str_t |] in
+	let draw_func : L.llvalue =
+			L.declare_function "draw" draw_t the_module in
 
   (* Define each function (arguments and return type) so we can 
      call it even before we've created its body *)
@@ -164,19 +168,22 @@ let translate (globals, functions) =
 	  (match op with
 	    A.Neg when t = A.Float -> L.build_fneg 
 	  | A.Neg                  -> L.build_neg
-          | A.Not                  -> L.build_not) e' "tmp" builder
-      | SCall ("print", [e]) | SCall ("printb", [e]) ->
-	  L.build_call printf_func [| int_format_str ; (expr builder e) |]
-	    "printf" builder
-      | SCall ("printbig", [e]) ->
-	  L.build_call printbig_func [| (expr builder e) |] "printbig" builder
-      | SCall ("printf", [e]) -> 
-	  L.build_call printf_func [| float_format_str ; (expr builder e) |]
-	    "printf" builder
-      | SCall ("sprintf", [e]) ->
+    | A.Not                  -> L.build_not) e' "tmp" builder
+    | SCall ("print", [e]) | SCall ("printb", [e]) ->
+	  	L.build_call printf_func [| int_format_str ; (expr builder e) |]
+	    	"printf" builder
+    | SCall ("printbig", [e]) ->
+	  	L.build_call printbig_func [| (expr builder e) |] 
+				"printbig" builder
+    | SCall ("printf", [e]) -> 
+	  	L.build_call printf_func [| float_format_str ; (expr builder e) |]
+	    	"printf" builder
+    (*  | SCall ("sprintf", [e]) ->
 	  L.build_call sprint_func [| char_format_str ; (expr builder e) |]
-	    "sprintf" builder 
-
+	    "sprintf" builder*) 
+		| SCall ("draw", [e]) ->
+			L.build_call draw_func [| (expr builder e) |]
+	 			"draw" builder
     in
     
     (* LLVM insists each basic block end with exactly one "terminator" 

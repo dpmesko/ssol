@@ -44,7 +44,6 @@ let check (globals, functions) =
 			                         ("printbig", Int);
 						 									 ("sprint", String);
 	 														 ("draw", String)] 
-						(* add draw() *)
   
   in
 
