@@ -1,0 +1,5 @@
+int main()
+{
+	draw("hello world");
+	return 0;
+}

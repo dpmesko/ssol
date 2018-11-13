@@ -8,7 +8,7 @@ test : all testall.sh
 # to test linking external code
 
 .PHONY : all
-all : ssol.native printbig.o
+all : ssol.native printbig.o draw.o
 
 # "make ssol.native" compiles the compiler
 #
@@ -33,6 +33,9 @@ clean :
 
 printbig : printbig.c
 	cc -o printbig -DBUILD_TEST printbig.c
+
+draw.o : draw.c svg.h svg.c
+	cc -o drawwww draw.c
 
 # Building the tarball
 
