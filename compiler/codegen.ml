@@ -65,7 +65,7 @@ let translate (globals, functions) =
   let sprint_func =
       L.declare_function "sprintf" sprintf_t the_module in
 	let draw_t : L.lltype = 
- 			L.function_type i32_t [| str_t |] in
+ 			L.function_type i32_t [| str_t ; str_t |] in
 	let draw_func : L.llvalue =
 			L.declare_function "draw" draw_t the_module in
 
@@ -181,8 +181,8 @@ let translate (globals, functions) =
     (*  | SCall ("sprintf", [e]) ->
 	  L.build_call sprint_func [| char_format_str ; (expr builder e) |]
 	    "sprintf" builder*) 
-		| SCall ("draw", [e]) ->
-			L.build_call draw_func [| (expr builder e) |]
+		| SCall ("draw", [e; ef]) ->
+			L.build_call draw_func [| (expr builder e) ; (expr builder ef) |]
 	 			"draw" builder
     in
     
