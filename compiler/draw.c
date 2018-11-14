@@ -39,7 +39,7 @@ void mondrian(void);
 // --------------------------------------------------------
 
 
-void draw(char *str)
+void draw(char *str, char *filename)
 {
 		svg* psvg;
 		psvg = svg_create(512, 512);
@@ -49,7 +49,7 @@ void draw(char *str)
 		else{
 			svg_text(psvg, 0, 0, "white", "white", 0, 0, str);
 			svg_finalize(psvg);
-			svg_save(psvg, "hello.svg");
+			svg_save(psvg, filename);
 			svg_free(psvg);
 		}
 }
