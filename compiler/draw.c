@@ -2,8 +2,7 @@
 #include<math.h>
 #include<time.h>
 
-#include"svg.h"
-
+#include "svg.h"
 
 // STOLEN FROM http://www.code-in-c.com/writing-svg-library-c/
 
@@ -15,17 +14,17 @@ void drawrectangles(void);
 void drawallshapes(void);
 void iwanttobelieve(void);
 void mondrian(void);
-
+/*
 //--------------------------------------------------------
 // FUNCTION main
 //--------------------------------------------------------
-/* int main()
+ int main()
 {
     puts("Code in C - SVG\n---------------\n");
 
-    drawrectangles();
+  //   drawrectangles();
 
-		drawhello();
+		// drawhello();
     //drawallshapes();
 
     //iwanttobelieve();
@@ -33,14 +32,14 @@ void mondrian(void);
     //mondrian();
 
     return EXIT_SUCCESS;
-}*/
-
+}
+*/
 // --------------------------------------------------------
 // FUNCTION drawrectangles
 // --------------------------------------------------------
 
 
-void draw(char *str)
+void draw(char *str, char *filename)
 {
 		svg* psvg;
 		psvg = svg_create(512, 512);
@@ -50,7 +49,7 @@ void draw(char *str)
 		else{
 			svg_text(psvg, 0, 0, "white", "white", 0, 0, str);
 			svg_finalize(psvg);
-			svg_save(psvg, "hello.svg");
+			svg_save(psvg, filename);
 			svg_free(psvg);
 		}
 }

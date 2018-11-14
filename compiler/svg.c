@@ -104,7 +104,10 @@ void svg_rectangle(svg* psvg, int width, int height, int x, int y, char* fill, c
 //----------------------
 void svg_text(svg* psvg, int x, int y, char* fontfamily, int fontsize, char* fill, char* stroke, char* text)
 {
-		appendstringtosvg(psvg, text);
+		char buf[200];
+
+		int ret = sprintf(buf, "<text x='50' y='50' style='font-size:50px'>%s</text>", text);
+		appendstringtosvg(psvg, buf);
 }
 
 
