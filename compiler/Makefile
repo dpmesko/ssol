@@ -8,7 +8,7 @@ test : all testall.sh
 # to test linking external code
 
 .PHONY : all
-all : clean ssol.native printbig.o draw
+all : ssol.native printbig.o draw
 
 # "make ssol.native" compiles the compiler
 #
