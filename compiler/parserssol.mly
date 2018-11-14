@@ -79,15 +79,21 @@ vdecl_list:
 
 vdecl:
     typ ID SEMI { ($1, $2) }
-  | typ ID LBRACK expr RBRACK SEMI { ($1, $2, $4) }
 
 stmt_list:
     /* nothing */  { [] }
   | stmt_list stmt { $2 :: $1 }
 
+vdecl_stmt:
+    typ ID SEMI { VDecl($1, $2) }
+  |	typ ID ASSIGN expr SEMI { VDeclAssign($1, $2, $4) }
+  |	typ ID ASSIGN array_lit SEMI { VDeclAssign($1, $2, $4) }
+  | typ ID LBRACK expr RBRACK SEMI { ADecl($1, $2, $4) }
+
 /* FIGURE OUT BREAK,CONTINUE RULE */
 stmt:
     expr SEMI                               { Expr $1               }
+  | vdecl_stmt								{ $1 					}
   | RETURN expr_opt SEMI                    { Return $2             }
   | LBRACE stmt_list RBRACE                 { Block(List.rev $2)    }
   | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
@@ -103,7 +109,7 @@ expr_opt:
 
 expr:
     LITERAL          { Literal($1)            }
-  | FLIT	         { Fliteral($1)           }
+  | FLIT	     { Fliteral($1)           }
   | BLIT             { BoolLit($1)            }
   | ID               { Id($1)                 }
   | CHAR_LITERAL     { CharLit($1)            }
@@ -122,7 +128,7 @@ expr:
   | expr OR     expr { Binop($1, Or,    $3)   }
   | expr PIPE   expr { Binop($1, Pipe,  $3)   }
   | expr PIPEND expr { Binop($1, Pipend, $3)  }
-  | expr DOT    ID   { Field($1, $3)          } 
+  | ID   DOT    expr   { Field($1, $3)          } 
   | MINUS expr %prec NOT { Unop(Neg, $2)      }
   | NOT expr         { Unop(Not, $2)          }
   | ID ASSIGN expr   { Assign($1, $3)         }
@@ -130,7 +136,8 @@ expr:
   | ID LBRACK expr RBRACK { Access($1, $3)    }
   | ID LBRACK expr RBRACK ASSIGN expr { ArrayAssign($1, $3, $6) }
   | ID LPAREN args_opt RPAREN { Call($1, $3)  }
-  | LPAREN expr RPAREN { $2                   }
+  | typ LPAREN args_opt RPAREN { Constructor($1, $3) }
+	| LPAREN expr RPAREN { $2                   }
 
 array_lit:
   LBRACE args_opt RBRACE { ArrayLit($2) }

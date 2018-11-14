@@ -41,7 +41,10 @@ let check (globals, functions) =
     in List.fold_left add_bind StringMap.empty [ ("print", Int);
 			                         ("printb", Bool);
 			                         ("printf", Float);
-			                         ("printbig", Int) ]
+			                         ("printbig", Int);
+						 									 ("sprint", String);
+	 														 ("draw", String)] 
+  
   in
 
   (* Add function name to symbol table *)
@@ -75,8 +78,14 @@ let check (globals, functions) =
 
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
-    let check_assign lvaluet rvaluet err =
-       if lvaluet = rvaluet then lvaluet else raise (Failure err)
+
+	let check_assign lvaluet rvaluet err =
+	   match lvaluet with
+           Array(lt, _) ->
+              (match rvaluet with
+                  Array(rt, _) -> if lt == rt then lvaluet else raise (Failure err)
+                | _ -> raise (Failure err))
+         | _ -> if lvaluet == rvaluet then lvaluet else raise (Failure err)
     in   
 
     (* Build local symbol table of variables for this function *)
@@ -91,18 +100,54 @@ let check (globals, functions) =
     in
 
     (* Return a semantically-checked expression, i.e., with a type *)
+
+	(*TODO: add Field, Access, ArrayAssign logic *)
+
     let rec expr = function
-        Literal  l -> (Int, SLiteral l)
-      | Fliteral l -> (Float, SFliteral l)
-      | BoolLit l  -> (Bool, SBoolLit l)
-      | Noexpr     -> (Void, SNoexpr)
-      | Id s       -> (type_of_identifier s, SId s)
+        Literal  l  -> (Int, SLiteral l)
+      | Fliteral l  -> (Float, SFliteral l)
+      | BoolLit l   -> (Bool, SBoolLit l)
+      | CharLit l   -> (Char, SCharLit l)
+      | StringLit l -> (String, SStringLit l)
+      | ArrayLit elist -> 
+      		let slist = List.map expr elist in
+(*           let rec typmatch t (x::xs) = 
+		  		if t == (fst x) then
+				if xs == [] then
+					t
+				else
+					typmatch t xs
+			else
+				raise (Failure ("array elements are not of same type")) *)
+		  	  (Array(fst (List.hd slist), List.length slist), SArrayLit(slist))
+      | Noexpr      -> (Void, SNoexpr)
+      | Id s        -> (type_of_identifier s, SId s)
       | Assign(var, e) as ex -> 
           let lt = type_of_identifier var
           and (rt, e') = expr e in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
           in (check_assign lt rt err, SAssign(var, (rt, e')))
+			| Access(arr, ind) ->
+					let arrtyp = type_of_identifier arr 
+					and (ty', ex') as ind' = expr ind in 
+					(*if ty' != Int then
+				  	raise (Failure ("expected Int for array index value, but was given " ^ string_of_sexpr ind')) *)
+					(*let checklen = match arrytp with
+							Array(t, s) -> if ex' > s then
+								raise (Failure ("index " ^ string_of_sexpr ind' ^ " out of range")*)
+					let retval = match arrtyp with
+						  Array(t, s) -> (Array(t,s), SAccess(arr, ind'))
+				    | _ -> raise (Failure ("cannot access index " ^ string_of_sexpr ind' ^ " of " ^ arr ^ ": it has type " ^ string_of_typ arrtyp))
+					in retval
+			| ArrayAssign(arr, ind, ex) -> 
+		 			let arrtyp = type_of_identifier arr
+				  and ind' = expr ind
+					and ex'= expr ex in
+					(arrtyp, SArrayAssign(arr, ind', ex'))
+			| Field(obj, mem) -> 
+					let smem = expr mem in
+					(fst smem, SField(obj, smem))
       | Unop(op, e) as ex -> 
           let (t, e') = expr e in
           let ty = match op with
@@ -144,6 +189,9 @@ let check (globals, functions) =
           in 
           let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall(fname, args'))
+			| Constructor(ty, exl) -> 
+					let sexl = List.map expr exl in
+					(ty, SConstructor(ty, sexl))
     in
 
     let check_bool_expr e = 
@@ -153,6 +201,9 @@ let check (globals, functions) =
     in
 
     (* Return a semantically-checked statement i.e. containing sexprs *)
+
+	(*TODO: Add VDecl, VDeclAssign, ADecl logic *)
+
     let rec check_stmt = function
         Expr e -> SExpr (expr e)
       | If(p, b1, b2) -> SIf(check_bool_expr p, check_stmt b1, check_stmt b2)

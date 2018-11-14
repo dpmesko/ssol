@@ -7,15 +7,25 @@ and sx =
     SLiteral of int
   | SFliteral of string
   | SBoolLit of bool
+  | SCharLit of char
+  | SStringLit of string
+  | SArrayLit of sexpr list
   | SId of string
   | SBinop of sexpr * op * sexpr
+  | SField of string * sexpr
   | SUnop of uop * sexpr
   | SAssign of string * sexpr
+  | SAccess of string * sexpr
+  | SArrayAssign of string * sexpr * sexpr
   | SCall of string * sexpr list
-  | SNoexpr
+  | SConstructor of typ * sexpr list
+	| SNoexpr
 
 type sstmt =
-    SBlock of sstmt list
+    SVDecl of typ * string
+  | SVDeclAssign of typ * string * sexpr
+  | SADecl of typ * string * sexpr
+  | SBlock of sstmt list
   | SExpr of sexpr
   | SReturn of sexpr
   | SIf of sexpr * sstmt * sstmt
@@ -37,21 +47,30 @@ type sprogram = bind list * sfunc_decl list
 let rec string_of_sexpr (t, e) =
   "(" ^ string_of_typ t ^ " : " ^ (match e with
     SLiteral(l) -> string_of_int l
+  | SFliteral(l) -> l
   | SBoolLit(true) -> "true"
   | SBoolLit(false) -> "false"
-  | SFliteral(l) -> l
+  | SCharLit(l) -> String.make 1 l
+  | SStringLit(l) -> l
+  | SArrayLit(arr) -> "[" ^ (List.fold_left (fun lst elem -> lst ^ " " ^ string_of_sexpr elem ^ ",") "" arr) ^ "]"
+  | SField(e,f) -> e ^ "." ^ string_of_sexpr f
   | SId(s) -> s
   | SBinop(e1, o, e2) ->
       string_of_sexpr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_sexpr e2
   | SUnop(o, e) -> string_of_uop o ^ string_of_sexpr e
   | SAssign(v, e) -> v ^ " = " ^ string_of_sexpr e
+  | SAccess(a, i) -> a ^ "[" ^ string_of_sexpr i ^ "]"
+  | SArrayAssign(arr, index, rval) -> arr ^ "[" ^ string_of_sexpr index ^ "]" ^ string_of_sexpr rval
   | SCall(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
   | SNoexpr -> ""
 				  ) ^ ")"				     
 
 let rec string_of_sstmt = function
-    SBlock(stmts) ->
+    SVDecl(t, i) -> string_of_typ t ^ " " ^ i ^ "\n"
+  | SVDeclAssign(t, i, e) -> string_of_typ t ^ " " ^ i ^ " = " ^ string_of_sexpr e ^ "\n"
+  | SADecl(t, i, s) -> string_of_typ t ^ " " ^ i ^ "[" ^ string_of_sexpr s ^ "]\n"
+  | SBlock(stmts) ->
       "{\n" ^ String.concat "" (List.map string_of_sstmt stmts) ^ "}\n"
   | SExpr(expr) -> string_of_sexpr expr ^ ";\n";
   | SReturn(expr) -> "return " ^ string_of_sexpr expr ^ ";\n";
