@@ -51,7 +51,6 @@ fdecl:
      { { typ = $1;
 	 fname = $2;
 	 formals = List.rev $4;
-	 locals = List.rev $4;
 	 body = List.rev $7 } }
 
 formals_opt:
@@ -74,15 +73,15 @@ typ:
   | CANVAS    { Canvas }
 
 vdecl:
-    typ ID SEMI { VDecl($1, $2) }
+    typ ID SEMI { ($1, $2) }
 
 stmt_list:
     /* nothing */  { [] }
   | stmt_list stmt { $2 :: $1 }
 
 vdecl_stmt:
-    vdecl { $1 }
-  |	typ ID ASSIGN expr SEMI { VDeclAssign($1, $2, $4) }
+    typ ID SEMI { VDecl($1,$2)}
+  |  typ ID ASSIGN expr SEMI { VDeclAssign($1, $2, $4) }
   |	typ ID ASSIGN array_lit SEMI { VDeclAssign($1, $2, $4) }
   | typ ID LBRACK expr RBRACK SEMI { ADecl($1, $2, $4) }
 
