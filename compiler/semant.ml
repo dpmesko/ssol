@@ -37,7 +37,7 @@ let check (globals, functions) =
       typ = Void;
       fname = name; 
       formals = List.map (fun elem -> (elem, "x")) tylst;
-      (* locals = [];  *)body = [] } map
+      (* locals = []; *) body = [] } map
     in List.fold_left add_bind StringMap.empty [ ("print", [Int]);
 			                         ("printb", [Bool]);
 			                         ("printf", [Float]);
@@ -90,7 +90,7 @@ let check (globals, functions) =
 
     (* Build local symbol table of variables for this function *)
     let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
-	                StringMap.empty (globals @ func.formals @ func.locals )
+	                StringMap.empty (globals @ func.formals (* @ func.locals *) )
     in
 
     (* Return a variable from our local symbol table *)

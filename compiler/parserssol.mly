@@ -51,6 +51,7 @@ fdecl:
      { { typ = $1;
 	 fname = $2;
 	 formals = List.rev $4;
+	 locals = List.rev $4;
 	 body = List.rev $7 } }
 
 formals_opt:
@@ -73,7 +74,7 @@ typ:
   | CANVAS    { Canvas }
 
 vdecl:
-    typ ID SEMI { ($1, $2) }
+    typ ID SEMI { VDecl($1, $2) }
 
 stmt_list:
     /* nothing */  { [] }
