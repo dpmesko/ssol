@@ -13,6 +13,7 @@ To compile and run SSOL programs, first run 'make' to create the compiler execut
 To run and test our hello world test program:
 
 $ make
+
 $ ./ssol tests/test-draw
 
 The executable shell script 'ssol', compilesh the input file 'test/test-draw.ssol' into LLVM IR in a file called 'tests/test-draw.ll'.
