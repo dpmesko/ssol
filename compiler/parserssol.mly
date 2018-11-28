@@ -47,12 +47,11 @@ decls:
  | decls fdecl { (fst $1, ($2 :: snd $1)) }
 
 fdecl:
-   typ ID LPAREN formals_opt RPAREN LBRACE vdecl_list stmt_list RBRACE
+   typ ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE
      { { typ = $1;
 	 fname = $2;
 	 formals = List.rev $4;
-	 locals = List.rev $7;
-	 body = List.rev $8 } }
+	 body = List.rev $7 } }
 
 formals_opt:
     /* nothing */ { [] }
@@ -73,10 +72,6 @@ typ:
   | CURVE     { Curve  }
   | CANVAS    { Canvas }
 
-vdecl_list:
-    /* nothing */    { [] }
-  | vdecl_list vdecl { $2 :: $1 }
-
 vdecl:
     typ ID SEMI { ($1, $2) }
 
@@ -85,8 +80,8 @@ stmt_list:
   | stmt_list stmt { $2 :: $1 }
 
 vdecl_stmt:
-    typ ID SEMI { VDecl($1, $2) }
-  |	typ ID ASSIGN expr SEMI { VDeclAssign($1, $2, $4) }
+    typ ID SEMI { VDecl($1,$2)}
+  |  typ ID ASSIGN expr SEMI { VDeclAssign($1, $2, $4) }
   |	typ ID ASSIGN array_lit SEMI { VDeclAssign($1, $2, $4) }
   | typ ID LBRACK expr RBRACK SEMI { ADecl($1, $2, $4) }
 

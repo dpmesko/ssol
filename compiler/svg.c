@@ -5,6 +5,11 @@
 #include<math.h>
 #include"svg.h"
 
+
+
+// STOLEN FROM http://www.code-in-c.com/writing-svg-library-c/
+
+
 // --------------------------------------------------------
 // STATIC FUNCTION appendstringtosvg
 // --------------------------------------------------------

@@ -47,7 +47,7 @@ void draw(char *str, char *filename)
 		if (psvg == NULL)
 				puts("psvg is NULL");
 		else{
-			svg_text(psvg, 0, 0, "white", "white", 0, 0, str);
+			svg_text(psvg, 0, 0, "white", 0, 0, 0, str);
 			svg_finalize(psvg);
 			svg_save(psvg, filename);
 			svg_free(psvg);
