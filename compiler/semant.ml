@@ -205,7 +205,20 @@ let check (globals, functions) =
 	(*TODO: Add VDecl, VDeclAssign, ADecl logic *)
 
     let rec check_stmt = function
-        Expr e -> SExpr (expr e)
+		VDecl(t,s) -> SVDecl(t,s)
+	  | VDeclAssign(t,s,e) -> 
+			let sx = expr e in
+			let retval = match fst(sx) with
+				t -> SVDeclAssign(t,s,sx)
+				| _ -> raise(Failure("Cannot assign " ^ string_of_typ (fst sx) ^ " to " ^ string_of_typ t)) 
+				in retval
+	  | ADecl(t,s,e) -> 
+	 		let sx = expr e in
+			let retval = match fst(sx) with
+				  Array(t,_) -> SADecl(t,s, sx)
+				| _  -> raise(Failure("Array type mismatch:" ^ string_of_typ (fst sx) ^ " and " ^ string_of_typ t)) in retval 
+		(*SADecl(t,s, expr e)*) (*NOT DONE. type of e needs to match t*)
+      | Expr e -> SExpr (expr e)
       | If(p, b1, b2) -> SIf(check_bool_expr p, check_stmt b1, check_stmt b2)
       | For(e1, e2, e3, st) ->
 	  SFor(expr e1, check_bool_expr e2, expr e3, check_stmt st)
