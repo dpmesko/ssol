@@ -226,13 +226,13 @@ let check (globals, functions) =
                 VDecl(t,name) -> 
                 (* CHECK FOR DUPLICATE *)
                   let block_locals = StringMap.add name t block_locals
-                    in check_stmt block_locals; check_block block_locals ss
+                    in check_stmt block_locals s; check_block block_locals ss
               | VDeclAssign(t,name,e) -> 
                 let block_locals = StringMap.add name t block_locals
-                  in check_stmt block_locals; check_block block_locals ss
+                  in check_stmt block_locals s; check_block block_locals ss
               | ADecl(t,name, e) -> 
                 let block_locals = StringMap.add name t block_locals
-                  in check_stmt block_locals; check_block block_locals ss
+                  in check_stmt block_locals s; check_block block_locals ss
               | _ -> check_stmt block_locals s; check_block block_locals ss)
         (*  | [] ->  IDK HOW TO MATCH THIS PATTERN *)
         in check_block locals sl 
