@@ -110,16 +110,17 @@ let check (globals, functions) =
       | CharLit l   -> (Char, SCharLit l)
       | StringLit l -> (String, SStringLit l)
       | ArrayLit elist -> 
+(*				  let rec typmatch t (x::xs) = 
+		  			if t == (fst x) then
+							if xs == [] then
+								t
+							else
+								typmatch t xs
+						else
+							raise (Failure ("array elements are not of same type")) *) 
       		let slist = List.map expr elist in
-(*           let rec typmatch t (x::xs) = 
-		  		if t == (fst x) then
-				if xs == [] then
-					t
-				else
-					typmatch t xs
-			else
-				raise (Failure ("array elements are not of same type")) *)
-		  	  (Array(fst (List.hd slist), List.length slist), SArrayLit(slist))
+					(* let tp = List.fold_left typmatch (fst (List.hd slist)) slist in *)
+					(Array(fst (List.hd slist), List.length slist), SArrayLit(slist))
       | Noexpr      -> (Void, SNoexpr)
       | Id s        -> (type_of_identifier s, SId s)
       | Assign(var, e) as ex -> 
@@ -144,7 +145,8 @@ let check (globals, functions) =
 		 			let arrtyp = type_of_identifier arr
 				  and ind' = expr ind
 					and ex'= expr ex in
-					(arrtyp, SArrayAssign(arr, ind', ex'))
+					let err = "illegal assignment " ^ (string_of_typ arrtyp) ^ " = " ^ (string_of_typ (fst ex')) in
+					(check_assign arrtyp (fst ex') err, SArrayAssign(arr, ind', ex'))
 			| Field(obj, mem) -> 
 					let smem = expr mem in
 					(fst smem, SField(obj, smem))
@@ -205,7 +207,8 @@ let check (globals, functions) =
 	(*TODO: Add VDecl, VDeclAssign, ADecl logic *)
 
     let rec check_stmt = function
-        Expr e -> SExpr (expr e)
+				VDecl(ty, id) -> SVDecl(ty, id)
+      | Expr e -> SExpr (expr e)
       | If(p, b1, b2) -> SIf(check_bool_expr p, check_stmt b1, check_stmt b2)
       | For(e1, e2, e3, st) ->
 	  SFor(expr e1, check_bool_expr e2, expr e3, check_stmt st)

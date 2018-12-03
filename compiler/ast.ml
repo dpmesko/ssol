@@ -72,6 +72,18 @@ let string_of_uop = function
     Neg -> "-"
   | Not -> "!"
 
+let rec string_of_typ = function
+    Int -> "int"
+  | Bool -> "bool"
+  | Float -> "float"
+  | Void -> "void"
+  | Char -> "char"
+  | String -> "String"
+  | Point -> "Point"
+  | Curve -> "Curve"
+  | Canvas -> "Canvas"
+  | Array(t, n) -> (string_of_typ t) ^ "[" ^ (string_of_int n) ^ "]"
+
 let rec string_of_expr = function
     Literal(l) -> string_of_int l
   | Fliteral(l) -> l
@@ -90,19 +102,9 @@ let rec string_of_expr = function
   | ArrayAssign(arr, index, rval) -> arr ^ "[" ^ string_of_expr index ^ "]" ^ string_of_expr rval
   | Call(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
-  | Noexpr -> ""
+	| Constructor(typ, args) -> string_of_typ typ ^ "(" ^ String.concat ", " (List.map string_of_expr args) ^ ")"
+	| Noexpr -> ""
 
-let rec string_of_typ = function
-    Int -> "int"
-  | Bool -> "bool"
-  | Float -> "float"
-  | Void -> "void"
-  | Char -> "char"
-  | String -> "String"
-  | Point -> "Point"
-  | Curve -> "Curve"
-  | Canvas -> "Canvas"
-  | Array(t, n) -> (string_of_typ t) ^ "[" ^ (string_of_int n) ^ "]"
 
 let rec string_of_stmt = function
     VDecl(t, i) -> string_of_typ t ^ " " ^ i ^ "\n"
