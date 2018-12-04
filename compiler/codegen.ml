@@ -24,7 +24,7 @@ let translate (globals, functions) =
   
   (* Create the LLVM compilation module into which
      we will generate code *)
-  let the_module = L.create_module context "MicroC" in
+  let the_module = L.create_module context "SSOL" in
 
   (* Get types from the context *)
   let i32_t      = L.i32_type    context
@@ -33,8 +33,9 @@ let translate (globals, functions) =
   and str_t	 = L.pointer_type (L.i8_type context)
   and float_t    = L.double_type context
   and void_t     = L.void_type   context in
-
-  (* Return the LLVM type for a MicroC type *)
+  let ptstruct_t = L.struct_type context [|L.i32_type context ; L.i32_type context|] in 
+  let cstruct_t = L.struct_type context [| ptstruct_t ; ptstruct_t ; ptstruct_t ; ptstruct_t|] in
+  (* Return the LLVM type for a SSOL type *)
   let ltype_of_typ = function
       A.Int   -> i32_t
     | A.Bool  -> i1_t
@@ -42,6 +43,8 @@ let translate (globals, functions) =
     | A.Void  -> void_t
     | A.String -> str_t
     | A.Char  -> i8_t
+    | A.Point -> ptstruct_t
+    | A.Curve -> cstruct_t
   in
 
   (* Create a map of global variables after creating each *)
@@ -52,6 +55,7 @@ let translate (globals, functions) =
         | _ -> L.const_int (ltype_of_typ t) 0
       in StringMap.add n (L.define_global n init the_module) m in
     List.fold_left global_var StringMap.empty globals in
+
 
   let printf_t : L.lltype = 
       L.var_arg_function_type i32_t [| L.pointer_type i8_t |] in
@@ -179,9 +183,13 @@ let translate (globals, functions) =
     (*  | SCall ("sprintf", [e]) ->
 	  L.build_call sprint_func [| char_format_str ; (expr builder e) |]
 	    "sprintf" builder*) 
-		| SCall ("draw", [e; ef]) ->
-			L.build_call draw_func [| (expr builder e) ; (expr builder ef) |]
+    | SCall ("draw", [e; ef]) ->
+        	L.build_call draw_func [| (expr builder e) ; (expr builder ef) |]
 	 			"draw" builder
+    | SConstructor (A.Point, [f1;f2]) ->
+                    L.const_struct context [|(expr builder f1) ; (expr builder f2)|]
+    (*| SConstructor (A.Curve, [e]) ->
+                L.struct_type context (L.array_type float_t 4)*)
     in
     
     (* LLVM insists each basic block end with exactly one "terminator" 
