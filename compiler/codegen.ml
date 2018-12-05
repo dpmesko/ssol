@@ -204,6 +204,12 @@ let translate (globals, functions) =
         let local_var = L.build_alloca (ltype_of_typ ty) name builder in
         let locals = StringMap.add name local_var locals in
         (builder, locals)
+      | SVDeclAssign(ty, name, sx) ->  
+      (* HUGE PROBLEM HERE. NEED TO PASS LOCAL STRING MAP TO expr in order to save the right value!!!! *)
+        let local_var = L.build_alloca (ltype_of_typ ty) name builder in
+        let locals = StringMap.add name local_var locals in
+          ignore (expr builder sx); (builder, locals)
+      | SADecl(ty,name, sx) ->
       | SExpr e -> ignore(expr builder e); (builder, locals)
       | SReturn e -> ignore(match fdecl.styp with
                               (* Special "return nothing" instr *)
