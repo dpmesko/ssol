@@ -1,6 +1,7 @@
 int main(){
-	int i;
-	float f;
+	int i = 0;
+	float f = 0.0;
+	printf(f);
 	return 0;
 }
 

@@ -111,23 +111,23 @@ let translate (globals, functions) =
 
     (* Return the value for a variable or formal argument.
        Check local names first, then global names *)
-    let lookup n = try StringMap.find n local_vars
+    let lookup n locals = try StringMap.find n locals
                    with Not_found -> StringMap.find n global_vars
     in
 
     (* Construct code for an expression; return its value *)
-    let rec expr builder ((_, e) : sexpr) = match e with
-	SLiteral i  -> L.const_int i32_t i
+    let rec expr builder locals ((_, e) : sexpr) = match e with
+	      SLiteral i  -> L.const_int i32_t i
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
       | SFliteral l -> L.const_float_of_string float_t l
       | SStringLit l -> L.build_global_stringptr l "str" builder
       | SNoexpr     -> L.const_int i32_t 0
-      | SId s       -> L.build_load (lookup s) s builder
-      | SAssign (s, e) -> let e' = expr builder e in
-                          ignore(L.build_store e' (lookup s) builder); e'
+      | SId s       -> L.build_load (lookup s locals) s builder
+      | SAssign (s, e) -> let e' = expr builder locals e in
+                          ignore(L.build_store e' (lookup s locals) builder); e'
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
-	  let e1' = expr builder e1
-	  and e2' = expr builder e2 in
+	  let e1' = expr builder locals e1
+	  and e2' = expr builder locals e2 in
 	  (match op with 
 	    A.Add     -> L.build_fadd
 	  | A.Sub     -> L.build_fsub
@@ -144,8 +144,8 @@ let translate (globals, functions) =
 	      raise (Failure "internal error: semant should have rejected and/or on float")
 	  ) e1' e2' "tmp" builder
       | SBinop (e1, op, e2) ->
-	  let e1' = expr builder e1
-	  and e2' = expr builder e2 in
+	  let e1' = expr builder locals e1
+	  and e2' = expr builder locals e2 in
 	  (match op with
 	    A.Add     -> L.build_add
 	  | A.Sub     -> L.build_sub
@@ -162,25 +162,25 @@ let translate (globals, functions) =
 	  | A.Geq     -> L.build_icmp L.Icmp.Sge
 	  ) e1' e2' "tmp" builder
       | SUnop(op, ((t, _) as e)) ->
-          let e' = expr builder e in
+          let e' = expr builder locals e in
 	  (match op with
 	    A.Neg when t = A.Float -> L.build_fneg 
 	  | A.Neg                  -> L.build_neg
     | A.Not                  -> L.build_not) e' "tmp" builder
     | SCall ("print", [e]) | SCall ("printb", [e]) ->
-	  	L.build_call printf_func [| int_format_str ; (expr builder e) |]
+	  	L.build_call printf_func [| int_format_str ; (expr builder locals e) |]
 	    	"printf" builder
     | SCall ("printbig", [e]) ->
-	  	L.build_call printbig_func [| (expr builder e) |] 
+	  	L.build_call printbig_func [| (expr builder locals e) |] 
 				"printbig" builder
     | SCall ("printf", [e]) -> 
-	  	L.build_call printf_func [| float_format_str ; (expr builder e) |]
+	  	L.build_call printf_func [| float_format_str ; (expr builder locals e) |]
 	    	"printf" builder
     (*  | SCall ("sprintf", [e]) ->
-	  L.build_call sprint_func [| char_format_str ; (expr builder e) |]
+	  L.build_call sprint_func [| char_format_str ; (expr builder locals e) |]
 	    "sprintf" builder*) 
 		| SCall ("draw", [e; ef]) ->
-			L.build_call draw_func [| (expr builder e) ; (expr builder ef) |]
+			L.build_call draw_func [| (expr builder locals e) ; (expr builder locals ef) |]
 	 			"draw" builder
     in
     
@@ -208,17 +208,17 @@ let translate (globals, functions) =
       (* HUGE PROBLEM HERE. NEED TO PASS LOCAL STRING MAP TO expr in order to save the right value!!!! *)
         let local_var = L.build_alloca (ltype_of_typ ty) name builder in
         let locals = StringMap.add name local_var locals in
-          ignore (expr builder sx); (builder, locals)
+          ignore (expr builder locals sx); (builder, locals)
       (*| SADecl(ty,name, sx) -> *)
-      | SExpr e -> ignore(expr builder e); (builder, locals)
+      | SExpr e -> ignore(expr builder locals e); (builder, locals)
       | SReturn e -> ignore(match fdecl.styp with
                               (* Special "return nothing" instr *)
                               A.Void -> L.build_ret_void builder 
                               (* Build return statement *)
-                            | _ -> L.build_ret (expr builder e) builder );
+                            | _ -> L.build_ret (expr builder locals e) builder );
                      (builder, locals)
       | SIf (predicate, then_stmt, else_stmt) ->
-         let bool_val = expr builder predicate in
+         let bool_val = expr builder locals predicate in
 	       let merge_bb = L.append_block context "merge" the_function in
          let build_br_merge = L.build_br merge_bb in (* partial function *)
       	 let then_bb = L.append_block context "then" the_function in
@@ -236,7 +236,7 @@ let translate (globals, functions) =
     	  add_terminal (fst (stmt (L.builder_at_end context body_bb) locals body))
     	    (L.build_br pred_bb);
     	  let pred_builder = L.builder_at_end context pred_bb in
-    	  let bool_val = expr pred_builder predicate in
+    	  let bool_val = expr pred_builder locals predicate in
     	  let merge_bb = L.append_block context "merge" the_function in
     	  ignore(L.build_cond_br bool_val body_bb merge_bb pred_builder);
     	 (L.builder_at_end context merge_bb, locals)
