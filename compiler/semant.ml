@@ -78,6 +78,9 @@ let check (globals, functions) =
 
     (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
+  (*let check_dup_def name map =
+    if StringMap.find name map then name else name
+  in*)
 
 	let check_assign lvaluet rvaluet err =
 	   match lvaluet with
@@ -87,8 +90,8 @@ let check (globals, functions) =
                 | _ -> raise (Failure err))
          | _ -> if lvaluet == rvaluet then lvaluet else raise (Failure err)
     in   
-
-    (* Create initial symbol map with globals and formals *)
+    
+	(* Create initial symbol map with globals and formals *)
     let globmap = List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
 	                StringMap.empty (globals @ func.formals (* @ func.locals *) )
     in
@@ -98,6 +101,14 @@ let check (globals, functions) =
       try StringMap.find s map
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
+(* 
+    let add_to_symbols name ty = 
+      let res = List.find_opt name func.locals 
+        in match res with 
+          None -> raise(Failure "This variable is already defined")
+          | _ -> func.locals :: [(name,ty)]
+    in *)
+
 
     (* Return a semantically-checked expression, i.e., with a type *)
 
@@ -209,39 +220,60 @@ let check (globals, functions) =
 
     (* Return a semantically-checked statement i.e. containing sexprs *)
 
-	(*TODO: Add VDecl, VDeclAssign, ADecl logic *)
+	(*TODO modify for change to symbol map structure of name -> (type,option Map) *)
 
-    let rec check_stmt = function
-				VDecl(ty, id) -> SVDecl(ty, id)
+    let rec check_stmt locals = function
+      Block sl -> (* let ssl = List.map (fun s -> check_stmt locals s) sl in
+          SBlock(ssl) *)
+       let rec check_block block_locals ssl= function
+         (*  s::ss -> ssl @ [(check_stmt block_locals s)] *)
+        [Return _ as s] -> ssl @ [check_stmt block_locals s]
+          | Return _::_ -> raise (Failure "nothing may follow a return")
+          | Block sl :: ss -> [check_stmt block_locals (Block sl)] @ (check_block block_locals ssl ss)
+          | s :: ss -> 
+            (match s with 
+                VDecl(t,name) -> 
+                (* TODO: CHECK FOR DUPLICATE *)
+                  let block_locals = StringMap.add name t block_locals
+                    in [check_stmt block_locals s] @ check_block block_locals ssl ss
+              | VDeclAssign(t,name,_) -> 
+                let block_locals = StringMap.add name t block_locals
+                  in [check_stmt block_locals s] @ check_block block_locals ssl ss
+              | ADecl(t,name, _) -> 
+                let block_locals = StringMap.add name t block_locals
+                  in [check_stmt block_locals s] @ check_block block_locals ssl ss
+              | _ -> [check_stmt block_locals s] @ check_block block_locals ssl ss)
+          | []  -> ssl 
+        in SBlock(check_block locals [] sl)
+		| VDecl(t,s) -> SVDecl(t,s)
+	  | VDeclAssign(t,s,e) -> 
+			let sx = expr e in
+			let retval = match fst(sx) with
+				t -> SVDeclAssign(t,s,sx)
+				| _ -> raise(Failure("Cannot assign " ^ string_of_typ (fst sx) ^ " to " ^ string_of_typ t)) 
+				in retval
+	  | ADecl(t,s,e) -> 
+	 		let sx = expr e in
+			let retval = match fst(sx) with
+				  Array(t,_) -> SADecl(t,s, sx)
+				| _  -> raise(Failure("Array type mismatch:" ^ string_of_typ (fst sx) ^ " and " ^ string_of_typ t)) in retval 
       | Expr e -> SExpr (expr e)
-      | If(p, b1, b2) -> SIf(check_bool_expr p, check_stmt b1, check_stmt b2)
+      | If(p, b1, b2) -> SIf(check_bool_expr p, check_stmt locals b1, check_stmt locals b2)
       | For(e1, e2, e3, st) ->
-	  SFor(expr e1, check_bool_expr e2, expr e3, check_stmt st)
-      | While(p, s) -> SWhile(check_bool_expr p, check_stmt s)
+	  SFor(expr e1, check_bool_expr e2, expr e3, check_stmt locals st)
+      | While(p, s) -> SWhile(check_bool_expr p, check_stmt locals s)
       | Return e -> let (t, e') = expr e in
         if t = func.typ then SReturn (t, e') 
         else raise (
 	  Failure ("return gives " ^ string_of_typ t ^ " expected " ^
 		   string_of_typ func.typ ^ " in " ^ string_of_expr e))
-	    
-	    (* A block is correct if each statement is correct and nothing
-	       follows any Return statement.  Nested blocks are flattened. *)
-      | Block sl -> 
-          let rec check_stmt_list = function
-              [Return _ as s] -> [check_stmt s]
-            | Return _ :: _   -> raise (Failure "nothing may follow a return")
-            | Block sl :: ss  -> check_stmt_list (sl @ ss) (* Flatten blocks *)
-            | s :: ss         -> check_stmt s :: check_stmt_list ss
-            | []              -> []
-          in SBlock(check_stmt_list sl)
-
     in (* body of check_function *)
     { styp = func.typ;
       sfname = func.fname;
       sformals = func.formals;
       (* slocals  = func.locals; *)
-      sbody = match check_stmt (Block func.body) with
-	SBlock(sl) -> sl
+      sbody = match check_stmt symbols (Block func.body) with
+	       SBlock(sl) -> sl
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
     }
   in (globals, List.map check_function functions)
