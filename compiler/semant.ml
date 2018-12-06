@@ -88,14 +88,14 @@ let check (globals, functions) =
          | _ -> if lvaluet == rvaluet then lvaluet else raise (Failure err)
     in   
 
-    (* Build local symbol table of variables for this function *)
-    let symbols = List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
+    (* Create initial symbol map with globals and formals *)
+    let globmap = List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
 	                StringMap.empty (globals @ func.formals (* @ func.locals *) )
     in
 
-    (* Return a variable from our local symbol table *)
-    let type_of_identifier s =
-      try StringMap.find s symbols
+    (* Return a tuple of (typ, membermap) from supplied symbol table *)
+    let type_of_identifier s map =
+      try StringMap.find s map
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
 
@@ -103,7 +103,7 @@ let check (globals, functions) =
 
 	(*TODO: add Field, Access, ArrayAssign logic *)
 
-    let rec expr = function
+    let rec expr symbols = function
         Literal  l  -> (Int, SLiteral l)
       | Fliteral l  -> (Float, SFliteral l)
       | BoolLit l   -> (Bool, SBoolLit l)
@@ -118,35 +118,35 @@ let check (globals, functions) =
 								typmatch t xs
 						else
 							raise (Failure ("array elements are not of same type")) *) 
-      		let slist = List.map expr elist in
+      		let slist = List.map expr symbols elist in
 					(* let tp = List.fold_left typmatch (fst (List.hd slist)) slist in *)
 					(Array(fst (List.hd slist), List.length slist), SArrayLit(slist))
       | Noexpr      -> (Void, SNoexpr)
       | Id s        -> (type_of_identifier s, SId s)
       | Assign(var, e) as ex -> 
           let lt = type_of_identifier var
-          and (rt, e') = expr e in
+          and (rt, e') = expr symbols e in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
           in (check_assign lt rt err, SAssign(var, (rt, e')))
 			| Access(arr, ind) ->
 					let arrtyp = type_of_identifier arr 
-					and (ty', ex') as ind' = expr ind in 
-					(*if ty' != Int then
-				  	raise (Failure ("expected Int for array index value, but was given " ^ string_of_sexpr ind')) *)
-					(*let checklen = match arrytp with
-							Array(t, s) -> if ex' > s then
-								raise (Failure ("index " ^ string_of_sexpr ind' ^ " out of range")*)
-					let retval = match arrtyp with
-						  Array(t, s) -> (Array(t,s), SAccess(arr, ind'))
-				    | _ -> raise (Failure ("cannot access index " ^ string_of_sexpr ind' ^ " of " ^ arr ^ ": it has type " ^ string_of_typ arrtyp))
-					in retval
-			| ArrayAssign(arr, ind, ex) -> 
+					and (ityp, iex) as ind' = expr symbols ind in
+					(match arrtyp with
+							Array(t, s) -> (match ityp with
+									Int -> (Array(t, s), SAccess(arr, ind'))
+								|	_ -> raise (Failure ("expected Int for array index value, " ^ 
+													"but was given " ^ string_of_sexpr ind')) )
+				   	| _ -> raise (Failure ("cannot access index " ^ string_of_sexpr ind' ^ 
+									" of " ^ arr ^ ": it has type " ^ string_of_typ arrtyp)) )
+			| ArrayAssign(arr, ind, ex) ->
 		 			let arrtyp = type_of_identifier arr
 				  and ind' = expr ind
 					and ex'= expr ex in
 					let err = "illegal assignment " ^ (string_of_typ arrtyp) ^ " = " ^ (string_of_typ (fst ex')) in
-					(check_assign arrtyp (fst ex') err, SArrayAssign(arr, ind', ex'))
+					(match arrtyp with
+							Array(t, s) -> (check_assign arrtyp (fst ex') err, SArrayAssign(arr, ind', ex'))
+						| _ -> raise (Failure (err)) )
 			| Field(obj, mem) -> 
 					let smem = expr mem in
 					(fst smem, SField(obj, smem))
@@ -192,8 +192,13 @@ let check (globals, functions) =
           let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall(fname, args'))
 			| Constructor(ty, exl) -> 
-					let sexl = List.map expr exl in
-					(ty, SConstructor(ty, sexl))
+					let sxl = List.map expr exl in
+					match ty with
+							Point -> (ty, SConstructor(ty, sxl))
+						| Curve -> (ty, SConstructor(ty, sxl))
+						| Canvas -> (ty, SConstructor(ty, sxl))
+						| x -> raise (Failure ("illegal type constructor call, " ^ string_of_typ x ^
+									" is not a complex type"))
     in
 
     let check_bool_expr e = 
