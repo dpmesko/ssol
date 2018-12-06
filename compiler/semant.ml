@@ -140,8 +140,8 @@ let check (globals, functions) =
             string_of_typ rt ^ " in " ^ string_of_expr ex
           in (check_assign lt rt err, SAssign(var, (rt, e')))
 			| Access(arr, ind) ->
-					let arrtyp = type_of_identifier arr 
-					and (ityp, iex) as ind' = expr symbols ind in
+					let arrtyp = type_of_identifier locals arr 
+					and (ityp, iex) as ind' = expr locals ind in
 					(match arrtyp with
 							Array(t, s) -> (match ityp with
 									Int -> (Array(t, s), SAccess(arr, ind'))
@@ -150,9 +150,9 @@ let check (globals, functions) =
 				   	| _ -> raise (Failure ("cannot access index " ^ string_of_sexpr ind' ^ 
 									" of " ^ arr ^ ": it has type " ^ string_of_typ arrtyp)) )
 			| ArrayAssign(arr, ind, ex) ->
-		 			let arrtyp = type_of_identifier arr
-				  and ind' = expr ind
-					and ex'= expr ex in
+		 			let arrtyp = type_of_identifier locals arr
+				  and ind' = expr locals ind
+					and ex'= expr locals ex in
 					let err = "illegal assignment " ^ (string_of_typ arrtyp) ^ " = " ^ (string_of_typ (fst ex')) in
 					(match arrtyp with
 							Array(t, s) -> (check_assign arrtyp (fst ex') err, SArrayAssign(arr, ind', ex'))
@@ -207,7 +207,7 @@ let check (globals, functions) =
           let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall(fname, args'))
 			| Constructor(ty, exl) -> 
-					let sxl = List.map expr exl in
+					let sxl = List.map (expr locals) exl in
 					match ty with
 							Point -> (ty, SConstructor(ty, sxl))
 						| Curve -> (ty, SConstructor(ty, sxl))
@@ -276,7 +276,7 @@ let check (globals, functions) =
       sfname = func.fname;
       sformals = func.formals;
       (* slocals  = func.locals; *)
-      sbody = match check_stmt symbols (Block func.body) with
+      sbody = match check_stmt (List.map (fun m (ty, map)->StringMap.add name (Block func.body) with
 	       SBlock(sl) -> sl
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
     }
