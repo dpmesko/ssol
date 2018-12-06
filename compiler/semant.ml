@@ -217,26 +217,28 @@ let check (globals, functions) =
 	(*TODO modify for change to symbol map structure of name -> (type,option Map) *)
 
     let rec check_stmt locals = function
-      Block sl ->
-        let rec check_block block_locals = function
-          [Return _ as s] -> check_stmt block_locals s
+      Block sl -> (* let ssl = List.map (fun s -> check_stmt locals s) sl in
+          SBlock(ssl) *)
+       let rec check_block block_locals ssl= function
+         (*  s::ss -> ssl @ [(check_stmt block_locals s)] *)
+        [Return _ as s] -> ssl @ [check_stmt block_locals s]
           | Return _::_ -> raise (Failure "nothing may follow a return")
-          | Block sl :: ss -> ignore(check_stmt block_locals (Block sl)); check_block block_locals ss
+          | Block sl :: ss -> [check_stmt block_locals (Block sl)] @ (check_block block_locals ssl ss)
           | s :: ss -> 
             (match s with 
                 VDecl(t,name) -> 
                 (* TODO: CHECK FOR DUPLICATE *)
                   let block_locals = StringMap.add name t block_locals
-                    in ignore(check_stmt block_locals s); check_block block_locals ss
+                    in [check_stmt block_locals s] @ check_block block_locals ssl ss
               | VDeclAssign(t,name,_) -> 
                 let block_locals = StringMap.add name t block_locals
-                  in ignore(check_stmt block_locals s); check_block block_locals ss
+                  in [check_stmt block_locals s] @ check_block block_locals ssl ss
               | ADecl(t,name, _) -> 
                 let block_locals = StringMap.add name t block_locals
-                  in ignore(check_stmt block_locals s); check_block block_locals ss
-              | _ -> ignore(check_stmt block_locals s); check_block block_locals ss)
-          | [] as s-> SBlock(s) 
-        in check_block locals sl
+                  in [check_stmt block_locals s] @ check_block block_locals ssl ss
+              | _ -> [check_stmt block_locals s] @ check_block block_locals ssl ss)
+          | []  -> ssl 
+        in SBlock(check_block locals [] sl)
 		| VDecl(t,s) -> SVDecl(t,s)
 	  | VDeclAssign(t,s,e) -> 
 			let sx = expr e in
@@ -265,7 +267,7 @@ let check (globals, functions) =
       sformals = func.formals;
       (* slocals  = func.locals; *)
       sbody = match check_stmt symbols (Block func.body) with
-	SBlock(sl) -> sl
+	       SBlock(sl) -> sl
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
     }
   in (globals, List.map check_function functions)
