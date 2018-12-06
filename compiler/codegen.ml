@@ -42,6 +42,7 @@ let translate (globals, functions) =
     | A.Void  -> void_t
     | A.String -> str_t
     | A.Char  -> i8_t
+
   in
 
   (* Create a map of global variables after creating each *)
@@ -101,9 +102,9 @@ let translate (globals, functions) =
 
       (* Allocate space for any locally declared variables and add the
        * resulting registers to our map *)
-      and add_local m (t, n) =
+     (*  and add_local m (t, n) =
       	let local_var = L.build_alloca (ltype_of_typ t) n builder
-      	in StringMap.add n local_var m 
+      	in StringMap.add n local_var m  *)
       in
 
       List.fold_left2 add_formal StringMap.empty fdecl.sformals
@@ -244,9 +245,9 @@ let translate (globals, functions) =
       (* Implement for loops as while loops *)
       | SFor (e1, e2, e3, body) -> stmt builder locals
 	    ( SBlock [SExpr e1 ; SWhile (e2, SBlock [body ; SExpr e3]) ] )
-        in
+      in
         (* Build the code for each statement in the function *)
-        let (builder, _ ) = stmt builder local_vars (SBlock fdecl.sbody) in
+      let (builder, _ ) = stmt builder local_vars (SBlock fdecl.sbody) in
         (* Add a return if the last block falls off the end *)
         add_terminal builder (match fdecl.styp with
             A.Void -> L.build_ret_void
