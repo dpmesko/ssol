@@ -1,8 +1,7 @@
 int main(){
 	//int i = 0;
-	float f = 10.0;
-	float x = f==10.0;
-	printf(x);
+	float f= 10.0;
+	printf(f);
 	return 0;
 }
 

@@ -209,7 +209,7 @@ let translate (globals, functions) =
       (* HUGE PROBLEM HERE. NEED TO PASS LOCAL STRING MAP TO expr in order to save the right value!!!! *)
         let local_var = L.build_alloca (ltype_of_typ ty) name builder in
         let locals = StringMap.add name local_var locals in
-          ignore (expr builder locals sx); (builder, locals)
+          ignore (expr builder locals (ty,SAssign(name, sx))); (builder, locals)
       (*| SADecl(ty,name, sx) -> *)
       | SExpr e -> ignore(expr builder locals e); (builder, locals)
       | SReturn e -> ignore(match fdecl.styp with
