@@ -25,7 +25,7 @@ type expr =
   | Access of string * expr
   | ArrayAssign of string * expr * expr
   | Call of string * expr list
-	| Constructor of typ * expr list
+  | Constructor of typ * expr list
   | Noexpr
 
 type stmt =
@@ -105,8 +105,7 @@ let rec string_of_expr = function
 	| Constructor(typ, args) -> string_of_typ typ ^ "(" ^ String.concat ", " (List.map string_of_expr args) ^ ")"
 	| Noexpr -> ""
 
-
-let rec string_of_stmt = function
+	let rec string_of_stmt = function
     VDecl(t, i) -> string_of_typ t ^ " " ^ i ^ "\n"
   | VDeclAssign(t, i, e) -> string_of_typ t ^ " " ^ i ^ " = " ^ string_of_expr e ^ "\n"
   | ADecl(t, i, s) -> string_of_typ t ^ " " ^ i ^ "[" ^ string_of_expr s ^ "]\n"
