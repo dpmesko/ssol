@@ -32,16 +32,18 @@ let translate (globals, functions) =
   and i1_t       = L.i1_type     context
   and str_t	 = L.pointer_type (L.i8_type context)
   and float_t    = L.double_type context
-  and void_t     = L.void_type   context in
+  and void_t     = L.void_type   context 
+  and array_t 	 = L.array_type  in
 
   (* Return the LLVM type for a MicroC type *)
-  let ltype_of_typ = function
+  let rec ltype_of_typ = function
       A.Int   -> i32_t
     | A.Bool  -> i1_t
     | A.Float -> float_t
     | A.Void  -> void_t
     | A.String -> str_t
     | A.Char  -> i8_t
+	| A.Array(ty, n) -> array_t (ltype_of_typ ty) n
 
   in
 
@@ -202,15 +204,20 @@ let translate (globals, functions) =
 	      SBlock sl -> List.fold_left (fun (b, lv) s -> stmt b lv s) (builder, locals) sl
       (* | SVDdecl(ty, name) ->  *)
       | SVDecl(ty, name) ->
-        let local_var = L.build_alloca (ltype_of_typ ty) name builder in
-        let locals = StringMap.add name local_var locals in
+        	let local_var = L.build_alloca (ltype_of_typ ty) name builder in
+        	let locals = StringMap.add name local_var locals in
         (builder, locals)
       | SVDeclAssign(ty, name, sx) ->  
       (* HUGE PROBLEM HERE. NEED TO PASS LOCAL STRING MAP TO expr in order to save the right value!!!! *)
-        let local_var = L.build_alloca (ltype_of_typ ty) name builder in
-        let locals = StringMap.add name local_var locals in
-          ignore (expr builder locals (ty,SAssign(name, sx))); (builder, locals)
-      (*| SADecl(ty,name, sx) -> *)
+        	let local_var = L.build_alloca (ltype_of_typ ty) name builder in
+        	let locals = StringMap.add name local_var locals in
+          	ignore (expr builder locals (ty,SAssign(name, sx))); (builder, locals)
+      | SADecl(ty,name, sx) ->
+	  		let str_index = L.string_of_llvalue (expr builder locals sx) in
+			let index = int_of_string str_index in
+	 		let local_var = L.build_alloca (ltype_of_typ (A.Array(ty, index))) name builder in
+		   	let locals = StringMap.add name local_var locals in
+		(builder, locals)	
       | SExpr e -> ignore(expr builder locals e); (builder, locals)
       | SReturn e -> ignore(match fdecl.styp with
                               (* Special "return nothing" instr *)
