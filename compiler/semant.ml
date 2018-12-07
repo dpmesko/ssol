@@ -276,7 +276,7 @@ let check (globals, functions) =
       sfname = func.fname;
       sformals = func.formals;
       (* slocals  = func.locals; *)
-      sbody = match check_stmt (List.map (fun m (ty, map)->StringMap.add name (Block func.body) with
+      sbody = match check_stmt globmap (Block func.body) with
 	       SBlock(sl) -> sl
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
     }
