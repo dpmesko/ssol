@@ -92,15 +92,27 @@ let check (globals, functions) =
     in   
     
 	(* Create initial symbol map with globals and formals *)
-    let globmap = List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
-	                StringMap.empty (globals @ func.formals (* @ func.locals *) )
+		let globmap = List.fold_left (fun m (ty, name) -> match ty with
+				  Point | Curve | Canvas -> StringMap.add name (ty, Some StringMap.empty) m
+				|	_ -> StringMap.add name (ty, None) m )
+	    StringMap.empty (globals @ func.formals (* @ func.locals *) )
     in
 
     (* Return a tuple of (typ, membermap) from supplied symbol table *)
+		(* TODO: have a separate function for returning map, just return type here?, or the whole tuple?*)
     let type_of_identifier locals s =
-      try StringMap.find s locals
+      try fst (StringMap.find s locals)
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
+
+		let member_map_of_identifier locals s =
+			try (match (StringMap.find s locals) with
+					(_, Some map) -> map
+				| (ty, None) -> raise (Failure ("cannot access members of " ^ s ^ 
+							": is of type " ^ string_of_typ ty)) )
+			with Not_found -> raise (Failure ("undeclared identifier " ^ s))
+
+		in
 (* 
     let add_to_symbols name ty = 
       let res = List.find_opt name func.locals 
@@ -112,7 +124,7 @@ let check (globals, functions) =
 
     (* Return a semantically-checked expression, i.e., with a type *)
 
-	(*TODO: add Field, Access, ArrayAssign logic *)
+	(*TODO: add Field, ArrayAssign logic *)
 
     let rec expr locals = function
         Literal  l  -> (Int, SLiteral l)
@@ -121,16 +133,15 @@ let check (globals, functions) =
       | CharLit l   -> (Char, SCharLit l)
       | StringLit l -> (String, SStringLit l)
       | ArrayLit elist -> 
-      		let slist = List.map (fun e -> expr locals e) elist in
-(*           let rec typmatch t (x::xs) = 
-		  		if t == (fst x) then
-				if xs == [] then
-					t
-				else
-					typmatch t xs
-			else
-				raise (Failure ("array elements are not of same type")) *)
-		  	  (Array(fst (List.hd slist), List.length slist), SArrayLit(slist))
+				  let rec typmatch t = function
+							[] -> t 
+						| (x::xs) -> 
+							if t == (fst x) then
+		  					typmatch t xs
+							else
+								raise (Failure ("array elements are not of same type")) 
+   			  and slist = List.map (fun e -> expr locals e) elist in
+					(Array(fst (List.hd slist), List.length slist), SArrayLit(slist))
       | Noexpr      -> (Void, SNoexpr)
       | Id s        -> (type_of_identifier locals s, SId s)
       | Assign(var, e) as ex -> 
@@ -162,8 +173,9 @@ let check (globals, functions) =
 				  and ind' = expr locals ind
 					and ex'= expr locals ex in
 					(arrtyp, SArrayAssign(arr, ind', ex'))
-			| Field(obj, mem) -> 
-					let smem = expr locals mem in
+			| Field(obj, mem) ->
+		 			let membermap = member_map_of_identifier locals obj	in
+					let smem = expr membermap mem in
 					(fst smem, SField(obj, smem))
       | Unop(op, e) as ex -> 
           let (t, e') = expr locals e in
@@ -187,6 +199,9 @@ let check (globals, functions) =
           | Less | Leq | Greater | Geq
                      when same && (t1 = Int || t1 = Float) -> Bool
           | And | Or when same && t1 = Bool -> Bool
+					| Pipe when (t1 = Point || t1 = Curve) && 
+							(t2 = Point || t2 = Curve) -> Canvas
+					| Pipend when t1 = Canvas && (t2 = Point || t2 = Curve)	 -> Canvas
           | _ -> raise (
 	      Failure ("illegal binary operator " ^
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
@@ -225,6 +240,8 @@ let check (globals, functions) =
     (* Return a semantically-checked statement i.e. containing sexprs *)
 
 	(*TODO modify for change to symbol map structure of name -> (type,option Map) *)
+
+		(* Statements within block not getting checked b/c they use the inner function?*)
 
     let rec check_stmt locals = function
       Block sl -> (* let ssl = List.map (fun s -> check_stmt locals s) sl in
