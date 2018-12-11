@@ -102,10 +102,10 @@ let rec string_of_expr = function
   | ArrayAssign(arr, index, rval) -> arr ^ "[" ^ string_of_expr index ^ "]" ^ string_of_expr rval
   | Call(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
-  | Noexpr -> ""
-  | Constructor(t, [e]) -> string_of_typ t 
+	| Constructor(typ, args) -> string_of_typ typ ^ "(" ^ String.concat ", " (List.map string_of_expr args) ^ ")"
+	| Noexpr -> ""
 
-let rec string_of_stmt = function
+	let rec string_of_stmt = function
     VDecl(t, i) -> string_of_typ t ^ " " ^ i ^ "\n"
   | VDeclAssign(t, i, e) -> string_of_typ t ^ " " ^ i ^ " = " ^ string_of_expr e ^ "\n"
   | ADecl(t, i, s) -> string_of_typ t ^ " " ^ i ^ "[" ^ string_of_expr s ^ "]\n"
