@@ -172,15 +172,26 @@ let check (globals, functions) =
 					(match arrtyp with
 							Array(t, s) -> (check_assign arrtyp (fst ex') err, SArrayAssign(arr, ind', ex'))
 						| _ -> raise (Failure (err)) )
-			| ArrayAssign(arr, ind, ex) -> 
-		 			let arrtyp = type_of_identifier locals arr
-				  and ind' = expr locals ind
-					and ex'= expr locals ex in
-					(arrtyp, SArrayAssign(arr, ind', ex'))
 			| Field(obj, mem) ->
-		 			let membermap = member_map_of_identifier locals obj	in
-					let smem = expr membermap mem in
-					(fst smem, SField(obj, smem))
+					let rec check_mem map = (function
+							Field(o, m) -> 
+								let memmap = member_map_of_identifier locals o in
+								check_mem memmap m
+						| Id s -> (match (StringMap.find s map) with
+									(ty, _) -> (ty, (ty, SId s)))
+								| _ -> raise (Failure ("Unknown member field access:" ^ 
+										string_of_expr (Field(obj, mem)))) )
+					in
+					check_mem locals (Field(obj,mem))
+
+(*		 			let membermap = member_map_of_identifier locals obj	in
+					let smem = expr membermap mem
+					(* Mem can be Field, in which case return (helper function?), otherwise Id
+					 		in which case return the type)*)
+					in (fst smem, SField(obj, smem))
+				  (match (StringMap.find mem membermap) with
+							(ty, _) -> (ty, SField(obj, mem))
+						| _ -> raise (Failure ("Unknown member field access:")) ) *)
       | Unop(op, e) as ex -> 
           let (t, e') = expr locals e in
           let ty = match op with
@@ -203,7 +214,7 @@ let check (globals, functions) =
           | Less | Leq | Greater | Geq
                      when same && (t1 = Int || t1 = Float) -> Bool
           | And | Or when same && t1 = Bool -> Bool
-					| Mod -> when same && t1 = Int -> Int
+					| Mod when same && t1 = Int -> Int
 					| Pipe when (t1 = Point || t1 = Curve) && 
 							(t2 = Point || t2 = Curve) -> Canvas
 					| Pipend when t1 = Canvas && (t2 = Point || t2 = Curve)	 -> Canvas
