@@ -33,7 +33,7 @@ let translate (globals, functions) =
   and str_t	 = L.pointer_type (L.i8_type context)
   and float_t    = L.double_type context
   and void_t     = L.void_type   context in
-  let ptstruct_t = L.struct_type context [|L.i32_type context ; L.i32_type context|] in 
+  let ptstruct_t = L.struct_type context [|L.double_type context ; L.double_type context|] in 
   let cstruct_t = L.struct_type context [| ptstruct_t ; ptstruct_t ; ptstruct_t ; ptstruct_t|] in
   (* Return the LLVM type for a SSOL type *)
   let ltype_of_typ = function
