@@ -1,7 +1,10 @@
 int main(){
 	//int i = 0;
 	float f= 10.0;
+	int arr[10];
 	printf(f);
+//	int i = 0;
+
 	return 0;
 }
 

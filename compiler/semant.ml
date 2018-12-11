@@ -259,9 +259,9 @@ let check (globals, functions) =
 	  | ADecl(t,s,e) -> 
 	 		let sx = expr locals e in
 			let retval = match fst(sx) with
-				  Array(t,_) -> SADecl(t,s, sx)
-				| _  -> raise(Failure("Array type mismatch:" ^ string_of_typ (fst sx) ^ " and " ^ string_of_typ t)) in retval 
-      | Expr e -> SExpr (expr locals e)
+				  Int -> SADecl(t,s, sx)
+				| _  -> raise(Failure("Array type mismatch:" ^ string_of_typ (fst sx) ^ " and " ^ string_of_typ t)) in retval 	
+	  | Expr e -> SExpr (expr locals e)
       | If(p, b1, b2) -> SIf(check_bool_expr locals p, check_stmt locals b1, check_stmt locals b2)
       | For(e1, e2, e3, st) ->
 	  SFor(expr locals e1, check_bool_expr locals e2, expr locals e3, check_stmt locals st)
