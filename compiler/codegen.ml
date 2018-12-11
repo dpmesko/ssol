@@ -30,11 +30,12 @@ let translate (globals, functions) =
   let i32_t      = L.i32_type    context
   and i8_t       = L.i8_type     context 
   and i1_t       = L.i1_type     context
-  and str_t	 = L.pointer_type (L.i8_type context)
-  and float_t    = L.double_type context
+  and str_t	 = L.pointer_type (L.i8_type context) 
   and void_t     = L.void_type   context in
-  let ptstruct_t = L.struct_type context [|L.double_type context ; L.double_type context|] in 
+  let float_t    = L.double_type context in
+  let ptstruct_t = L.struct_type context [| float_t ; float_t |] in 
   let cstruct_t = L.struct_type context [| ptstruct_t ; ptstruct_t ; ptstruct_t ; ptstruct_t|] in
+  
   (* Return the LLVM type for a SSOL type *)
   let ltype_of_typ = function
       A.Int   -> i32_t
@@ -188,9 +189,11 @@ let translate (globals, functions) =
 	 			"draw" builder
     | SConstructor (A.Point, [f1;f2]) ->
                 L.const_struct context [| (expr builder locals f1) ; (expr builder locals f2) |]
-    | SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) ->
+    | SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> (*w point constructors*)
                 L.const_struct context [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p3) |]  
-          
+    (*| SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> (*w point ids*)
+                    L.const_struct context [|L.build_load (lookup p1 locals) p1 builder ; L.build_load (lookup p2 locals) p2 builder ; L.build_load (lookup p3 locals) p3 builder ; L.build_load (lookup p4 locals) p4 builder |]*)
+
     in
     
     (* LLVM insists each basic block end with exactly one "terminator" 
