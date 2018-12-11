@@ -64,6 +64,7 @@ let rec string_of_sexpr (t, e) =
   | SCall(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
   | SNoexpr -> ""
+  | SConstructor(t, [e]) -> string_of_typ t 
 				  ) ^ ")"				     
 
 let rec string_of_sstmt = function
