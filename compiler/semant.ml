@@ -90,10 +90,20 @@ let check (globals, functions) =
                 | _ -> raise (Failure err))
          | _ -> if lvaluet == rvaluet then lvaluet else raise (Failure err)
     in   
-    
+   
+	 	let build_memmap mems = List.fold_left (fun mp (mem, t) -> 
+				StringMap.add mem (t, None) mp) StringMap.empty mems 
+		in
+
 	(* Create initial symbol map with globals and formals *)
 		let globmap = List.fold_left (fun m (ty, name) -> match ty with
-				  Point | Curve | Canvas -> StringMap.add name (ty, Some StringMap.empty) m
+				  Point -> StringMap.add name (ty, Some (build_memmap [("x", Float), ("y", Float)])) m
+				| Curve -> let memmap = List.fold_left (fun mp (mem, t) ->
+							StringMap.add mem (t, None) mp)
+							StringMap.empty [("x", Float), ("y", Float), ("ct1", Float),
+								("ct2", Float)] in
+						StringMap.add name (ty, Some memmap) m
+				| Canvas -> StringMap.add name (ty, Some StringMap.empty) m
 				|	_ -> StringMap.add name (ty, None) m )
 	    StringMap.empty (globals @ func.formals (* @ func.locals *) )
     in
@@ -123,8 +133,6 @@ let check (globals, functions) =
 
 
     (* Return a semantically-checked expression, i.e., with a type *)
-
-	(*TODO: add Field, ArrayAssign logic *)
 
     let rec expr locals = function
         Literal  l  -> (Int, SLiteral l)
