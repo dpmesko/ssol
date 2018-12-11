@@ -187,9 +187,10 @@ let translate (globals, functions) =
 			L.build_call draw_func [| (expr builder locals e) ; (expr builder locals ef) |]
 	 			"draw" builder
     | SConstructor (A.Point, [f1;f2]) ->
-                L.const_struct context [| (expr builder f1) ; (expr builder f2) |]
+                L.const_struct context [| (expr builder locals f1) ; (expr builder locals f2) |]
     | SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) ->
-                L.const_struct context [| (expr builder p1) ; (expr builder p1) ; (expr builder p1) ; (expr builder p1) |]  
+                L.const_struct context [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p3) |]  
+          
     in
     
     (* LLVM insists each basic block end with exactly one "terminator" 
