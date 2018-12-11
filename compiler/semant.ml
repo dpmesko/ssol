@@ -203,6 +203,7 @@ let check (globals, functions) =
           | Less | Leq | Greater | Geq
                      when same && (t1 = Int || t1 = Float) -> Bool
           | And | Or when same && t1 = Bool -> Bool
+					| Mod -> when same && t1 = Int -> Int
 					| Pipe when (t1 = Point || t1 = Curve) && 
 							(t2 = Point || t2 = Curve) -> Canvas
 					| Pipend when t1 = Canvas && (t2 = Point || t2 = Curve)	 -> Canvas
