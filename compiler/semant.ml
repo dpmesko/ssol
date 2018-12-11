@@ -90,27 +90,23 @@ let check (globals, functions) =
                 | _ -> raise (Failure err))
          | _ -> if lvaluet == rvaluet then lvaluet else raise (Failure err)
     in   
-   
+  
 	 	let build_memmap mems = List.fold_left (fun mp (mem, t) -> 
 				StringMap.add mem (t, None) mp) StringMap.empty mems 
 		in
-
+	
 	(* Create initial symbol map with globals and formals *)
 		let globmap = List.fold_left (fun m (ty, name) -> match ty with
-				  Point -> StringMap.add name (ty, Some (build_memmap [("x", Float), ("y", Float)])) m
-				| Curve -> let memmap = List.fold_left (fun mp (mem, t) ->
-							StringMap.add mem (t, None) mp)
-							StringMap.empty [("x", Float), ("y", Float), ("ct1", Float),
-								("ct2", Float)] in
-						StringMap.add name (ty, Some memmap) m
-				| Canvas -> StringMap.add name (ty, Some StringMap.empty) m
+				  Point -> StringMap.add name (ty, Some (build_memmap [("x", Float); ("y", Float)])) m
+				| Curve -> StringMap.add name (ty, Some (build_memmap [("ep1", Point); ("ep2", Point); ("cp1", Point); ("cp2", Point)])) m
+				| Canvas -> StringMap.add name (ty, Some (build_memmap [("x", Float); ("y", Float)])) m
 				|	_ -> StringMap.add name (ty, None) m )
 	    StringMap.empty (globals @ func.formals (* @ func.locals *) )
     in
 
     (* Return a tuple of (typ, membermap) from supplied symbol table *)
-		(* TODO: have a separate function for returning map, just return type here?, or the whole tuple?*)
-    let type_of_identifier locals s =
+    
+		let type_of_identifier locals s =
       try fst (StringMap.find s locals)
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
