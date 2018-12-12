@@ -31,7 +31,7 @@ type expr =
 type stmt =
     VDecl of typ * string
   | VDeclAssign of typ * string * expr
-  | ADecl of typ * string * expr
+  | ADecl of typ * string * int
   | Block of stmt list
   | Expr of expr
   | Return of expr
@@ -108,7 +108,7 @@ let rec string_of_expr = function
 	let rec string_of_stmt = function
     VDecl(t, i) -> string_of_typ t ^ " " ^ i ^ "\n"
   | VDeclAssign(t, i, e) -> string_of_typ t ^ " " ^ i ^ " = " ^ string_of_expr e ^ "\n"
-  | ADecl(t, i, s) -> string_of_typ t ^ " " ^ i ^ "[" ^ string_of_expr s ^ "]\n"
+  | ADecl(t, i, s) -> string_of_typ t ^ " " ^ i ^ "[" ^ string_of_int s ^ "]\n"
   | Block(stmts) ->
       "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
   | Expr(expr) -> string_of_expr expr ^ ";\n";
