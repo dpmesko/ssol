@@ -155,13 +155,8 @@ let check (globals, functions) =
 					and ex'= expr locals ex in
 					let err = "illegal assignment " ^ (string_of_typ arrtyp) ^ " = " ^ (string_of_typ (fst ex')) in
 					(match arrtyp with
-							Array(t, s) -> (check_assign arrtyp (fst ex') err, SArrayAssign(arr, ind', ex'))
+							Array(t, s) -> (check_assign t (fst ex') err, SArrayAssign(arr, ind', ex'))
 						| _ -> raise (Failure (err)) )
-			| ArrayAssign(arr, ind, ex) -> 
-		 			let arrtyp = type_of_identifier locals arr
-				  and ind' = expr locals ind
-					and ex'= expr locals ex in
-					(arrtyp, SArrayAssign(arr, ind', ex'))
 			| Field(obj, mem) -> 
 					let smem = expr locals mem in
 					(fst smem, SField(obj, smem))
@@ -243,8 +238,8 @@ let check (globals, functions) =
               | VDeclAssign(t,name,_) -> 
                 let block_locals = StringMap.add name t block_locals
                   in [check_stmt block_locals s] @ check_block block_locals ssl ss
-              | ADecl(t,name, _) -> 
-                let block_locals = StringMap.add name t block_locals
+              | ADecl(t,name, n) -> 
+                let block_locals = StringMap.add name (Array(t,n)) block_locals
                   in [check_stmt block_locals s] @ check_block block_locals ssl ss
               | _ -> [check_stmt block_locals s] @ check_block block_locals ssl ss)
           | []  -> ssl 
@@ -256,12 +251,8 @@ let check (globals, functions) =
 				t -> SVDeclAssign(t,s,sx)
 				| _ -> raise(Failure("Cannot assign " ^ string_of_typ (fst sx) ^ " to " ^ string_of_typ t)) 
 				in retval
-	  | ADecl(t,s,e) -> 
-	 		let sx = expr locals e in
-			let retval = match fst(sx) with
-				  Array(t,_) -> SADecl(t,s, sx)
-				| _  -> raise(Failure("Array type mismatch:" ^ string_of_typ (fst sx) ^ " and " ^ string_of_typ t)) in retval 
-      | Expr e -> SExpr (expr locals e)
+	  | ADecl(t,s,n) -> SADecl(t,s,n) 
+	  | Expr e -> SExpr (expr locals e)
       | If(p, b1, b2) -> SIf(check_bool_expr locals p, check_stmt locals b1, check_stmt locals b2)
       | For(e1, e2, e3, st) ->
 	  SFor(expr locals e1, check_bool_expr locals e2, expr locals e3, check_stmt locals st)
