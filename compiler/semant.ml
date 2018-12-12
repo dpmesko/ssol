@@ -32,7 +32,9 @@ let check (globals, functions) =
   (**** Check functions ****)
 
   (* Collect function declarations for built-in functions: no bodies *)
-  let built_in_decls = 
+
+  (* TODO: Passing "x" as element name - possible duplicate conflict?*)
+	let built_in_decls = 
     let add_bind map (name, tylst) = StringMap.add name {
       typ = Void;
       fname = name; 
@@ -91,17 +93,24 @@ let check (globals, functions) =
          | _ -> if lvaluet == rvaluet then lvaluet else raise (Failure err)
     in   
   
-	 	let build_memmap mems = List.fold_left (fun mp (mem, t) -> 
-				StringMap.add mem (t, None) mp) StringMap.empty mems 
-		in
-	
+
+	(* have recursive builder function for types *)
+ (*	 	let build_memmap mems (ty, name) = match ty with
+				Point -> StringMap.add name (ty, Some (build_memmap StringMap.empty (Float,"x"))) mems
+			| Curve -> StringMap.add name (ty, Some (build_memmap StringMap.empty (Point, "x"))) mems (*[(Point, "ep1"); (Point, "ep2"); (Point, "cp1"); (Point, "cp2")])) *) 
+			| Canvas -> StringMap.add name (ty, Some (build_memmap StringMap.empty (Point, "x"))) mems (*[(Float,"x"); (Float, "y")]))*) 
+			|	_ -> StringMap.add name (ty, None) mems 
+		in  *) 
+
 	(* Create initial symbol map with globals and formals *)
-		let globmap = List.fold_left (fun m (ty, name) -> match ty with
-				  Point -> StringMap.add name (ty, Some (build_memmap [("x", Float); ("y", Float)])) m
-				| Curve -> StringMap.add name (ty, Some (build_memmap [("ep1", Point); ("ep2", Point); ("cp1", Point); ("cp2", Point)])) m
-				| Canvas -> StringMap.add name (ty, Some (build_memmap [("x", Float); ("y", Float)])) m
-				|	_ -> StringMap.add name (ty, None) m )
-	    StringMap.empty (globals @ func.formals (* @ func.locals *) )
+		let globmap = 
+			let rec build_memmap m (ty,name) = match ty with
+					Point -> StringMap.add name (ty, Some StringMap.empty) m (*(List.fold_left build_memmap StringMap.empty [(Float, "x"); (Float, "y")])) m *)
+				| Curve -> StringMap.add name (ty, Some (StringMap.empty)) m
+				| Canvas -> StringMap.add name (ty, Some StringMap.empty) m (* (List.fold_left build_memmap StringMap.empty [(Float, "x"); (Float, "y")])) m *)
+				| _ -> StringMap.add name (ty, None) m
+			in 
+			List.fold_left build_memmap StringMap.empty (globals @ func.formals (* @ func.locals *) )
     in
 
     (* Return a tuple of (typ, membermap) from supplied symbol table *)
@@ -172,17 +181,17 @@ let check (globals, functions) =
 					(match arrtyp with
 							Array(t, s) -> (check_assign arrtyp (fst ex') err, SArrayAssign(arr, ind', ex'))
 						| _ -> raise (Failure (err)) )
-			| Field(obj, mem) ->
-					let rec check_mem map = (function
+			| Field(obj, mem) as e -> (Int, SField(obj, expr locals mem))
+					(* let rec check_mem map = (function
 							Field(o, m) -> 
 								let memmap = member_map_of_identifier locals o in
 								check_mem memmap m
 						| Id s -> (match (StringMap.find s map) with
-									(ty, _) -> (ty, (ty, SId s)))
+									(ty, _) -> (ty, (ty, SField(obj, SId s)))
 								| _ -> raise (Failure ("Unknown member field access:" ^ 
-										string_of_expr (Field(obj, mem)))) )
+										string_of_expr (Field(obj, mem)))) ) 
 					in
-					check_mem locals (Field(obj,mem))
+					check_mem locals e *)
 
 (*		 			let membermap = member_map_of_identifier locals obj	in
 					let smem = expr membermap mem
@@ -271,13 +280,13 @@ let check (globals, functions) =
             (match s with 
                 VDecl(t,name) -> 
                 (* TODO: CHECK FOR DUPLICATE *)
-                  let block_locals = StringMap.add name t block_locals
+                  let block_locals = StringMap.add name (t, None) block_locals
                     in [check_stmt block_locals s] @ check_block block_locals ssl ss
               | VDeclAssign(t,name,_) -> 
-                let block_locals = StringMap.add name t block_locals
+                let block_locals = StringMap.add name (t, None) block_locals
                   in [check_stmt block_locals s] @ check_block block_locals ssl ss
               | ADecl(t,name, _) -> 
-                let block_locals = StringMap.add name t block_locals
+                let block_locals = StringMap.add name (t, None) block_locals
                   in [check_stmt block_locals s] @ check_block block_locals ssl ss
               | _ -> [check_stmt block_locals s] @ check_block block_locals ssl ss)
           | []  -> ssl 
