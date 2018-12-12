@@ -138,6 +138,11 @@ let translate (globals, functions) =
 					(L.const_array (ltype_of_typ ty) lvarr) 
 			| SAssign (s, e) -> let e' = expr builder locals e in
                           ignore(L.build_store e' (lookup s locals) builder); e'
+			| SAccess(arr, ind) ->
+					let i' = expr builder locals ind in
+					let indices = [|L.const_int i32_t 0; i'|] in
+					let ref = L.build_gep (lookup arr locals) indices arr builder in
+					(L.build_load ref arr builder)
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
 
 	  let e1' = expr builder locals e1
@@ -220,8 +225,8 @@ let translate (globals, functions) =
         	let local_var = L.build_alloca (ltype_of_typ ty) name builder in
         	let locals = StringMap.add name local_var locals in
         (builder, locals)
-      | SVDeclAssign(ty, name, sx) ->  
-      (* HUGE PROBLEM HERE. NEED TO PASS LOCAL STRING MAP TO expr in order to save the right value!!!! *)
+      | SVDeclAssign(ty, name, sx) ->
+					 
         	let local_var = L.build_alloca (ltype_of_typ ty) name builder in
         	let locals = StringMap.add name local_var locals in
           	ignore (expr builder locals (ty,SAssign(name, sx))); (builder, locals)
