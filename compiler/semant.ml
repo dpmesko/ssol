@@ -139,7 +139,7 @@ let check (globals, functions) =
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
           in (check_assign lt rt err, SAssign(var, (rt, e')))
-			| Access(arr, ind) ->
+	  | Access(arr, ind) ->
 					let arrtyp = type_of_identifier locals arr 
 					and (ityp, iex) as ind' = expr locals ind in
 					(match arrtyp with
@@ -149,7 +149,7 @@ let check (globals, functions) =
 													"but was given " ^ string_of_sexpr ind')) )
 				   	| _ -> raise (Failure ("cannot access index " ^ string_of_sexpr ind' ^ 
 									" of " ^ arr ^ ": it has type " ^ string_of_typ arrtyp)) )
-			| ArrayAssign(arr, ind, ex) ->
+	  | ArrayAssign(arr, ind, ex) ->
 		 			let arrtyp = type_of_identifier locals arr
 				  and ind' = expr locals ind
 					and ex'= expr locals ex in
@@ -157,7 +157,7 @@ let check (globals, functions) =
 					(match arrtyp with
 							Array(t, s) -> (check_assign t (fst ex') err, SArrayAssign(arr, ind', ex'))
 						| _ -> raise (Failure (err)) )
-			| Field(obj, mem) -> 
+	  | Field(obj, mem) -> 
 					let smem = expr locals mem in
 					(fst smem, SField(obj, smem))
       | Unop(op, e) as ex -> 

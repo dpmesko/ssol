@@ -131,9 +131,15 @@ let translate (globals, functions) =
       | SStringLit l -> L.build_global_stringptr l "str" builder
       | SNoexpr     -> L.const_int i32_t 0
       | SId s       -> L.build_load (lookup s locals) s builder
-      | SAssign (s, e) -> let e' = expr builder locals e in
+(*			| SArrayLit	slist	->
+					let sarr = Array.of_list slist in
+					let ty = fst(sarr.(0)) in
+					let lvarr = Array.map (fun e -> expr builder locals (snd e)) sarr in
+					(L.const_array (ltype_of_typ ty) lvarr)  *) 
+			| SAssign (s, e) -> let e' = expr builder locals e in
                           ignore(L.build_store e' (lookup s locals) builder); e'
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
+
 	  let e1' = expr builder locals e1
 	  and e2' = expr builder locals e2 in
 	  (match op with 
@@ -184,18 +190,13 @@ let translate (globals, functions) =
     | SCall ("printf", [e]) -> 
 	  	L.build_call printf_func [| float_format_str ; (expr builder locals e) |]
 	    	"printf" builder
-    (*  | SCall ("sprintf", [e]) ->
-	  L.build_call sprint_func [| char_format_str ; (expr builder locals e) |]
-	    "sprintf" builder*) 
-		| SCall ("draw", [e; ef]) ->
+	| SCall ("draw", [e; ef]) ->
 			L.build_call draw_func [| (expr builder locals e) ; (expr builder locals ef) |]
 	 			"draw" builder
     | SConstructor (A.Point, [f1;f2]) ->
                 L.const_struct context [| (expr builder locals f1) ; (expr builder locals f2) |]
     | SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> (*w point constructors*)
                 L.const_struct context [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p3) |]  
-    (*| SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> (*w point ids*)
-                    L.const_struct context [|L.build_load (lookup p1 locals) p1 builder ; L.build_load (lookup p2 locals) p2 builder ; L.build_load (lookup p3 locals) p3 builder ; L.build_load (lookup p4 locals) p4 builder |]*)
 
     in
     
