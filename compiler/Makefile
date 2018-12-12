@@ -30,6 +30,7 @@ clean :
 	ocamlbuild -clean
 	rm -rf testall.log ocamlllvm *.diff
 	rm -f *.err *.ll
+	rm -f *.s
 	rm -f *.o
 
 # Testing the "printbig" example

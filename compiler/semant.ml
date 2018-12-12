@@ -146,15 +146,17 @@ let check (globals, functions) =
       | CharLit l   -> (Char, SCharLit l)
       | StringLit l -> (String, SStringLit l)
       | ArrayLit elist -> 
-				  let rec typmatch t = function
-							[] -> t 
-						| (x::xs) -> 
-							if t == (fst x) then
-		  					typmatch t xs
-							else
-								raise (Failure ("array elements are not of same type")) 
+				  let rec typmatch t (ty, _) = 
+						if t == ty then
+		  				ty
+						else
+							raise (Failure ("array elements are not of same type")) 
    			  and slist = List.map (fun e -> expr locals e) elist in
-					(Array(fst (List.hd slist), List.length slist), SArrayLit(slist))
+					(match slist with
+							[] -> raise (Failure "cannot have array literal with 0 elements")
+						| _ -> 
+							let ty = List.fold_left typmatch (fst (List.hd slist)) slist in 
+							(Array(ty, List.length slist), SArrayLit(slist)) )
       | Noexpr      -> (Void, SNoexpr)
       | Id s        -> (type_of_identifier locals s, SId s)
       | Assign(var, e) as ex -> 
