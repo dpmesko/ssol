@@ -86,9 +86,9 @@ let check (globals, functions) =
 
 	let check_assign lvaluet rvaluet err =
 	   match lvaluet with
-           Array(lt, _) ->
+           Array(lt, ls) ->
               (match rvaluet with
-                  Array(rt, _) -> if lt == rt then lvaluet else raise (Failure err)
+                  Array(rt, rs) -> if (lt == rt && ls == rs) then lvaluet else raise (Failure err)
                 | _ -> raise (Failure err))
          | _ -> if lvaluet == rvaluet then lvaluet else raise (Failure err)
     in   
@@ -178,19 +178,19 @@ let check (globals, functions) =
           let lt = type_of_identifier locals var
           and (rt, e') = expr locals e in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
-            string_of_typ rt ^ " in " ^ string_of_expr ex
+            string_of_typ rt ^ " in " ^ string_of_expr ex ^ " for identifier " ^ var
           in (check_assign lt rt err, SAssign(var, (rt, e')))
-	  | Access(arr, ind) ->
+	  	| Access(arr, ind) ->
 					let arrtyp = type_of_identifier locals arr 
-					and (ityp, iex) as ind' = expr locals ind in
+					and (ityp, _) as ind' = expr locals ind in
 					(match arrtyp with
-							Array(t, s) -> (match ityp with
+							Array(t, _) -> (match ityp with
 									Int -> (t, SAccess(arr, ind'))
 								|	_ -> raise (Failure ("expected Int for array index value, " ^ 
 													"but was given " ^ string_of_sexpr ind')) )
 				   	| _ -> raise (Failure ("cannot access index " ^ string_of_sexpr ind' ^ 
 									" of " ^ arr ^ ": it has type " ^ string_of_typ arrtyp)) )
-	  | ArrayAssign(arr, ind, ex) ->
+	  	| ArrayAssign(arr, ind, ex) ->
 		 			let arrtyp = type_of_identifier locals arr
 				  and ind' = expr locals ind
 					and ex'= expr locals ex in
