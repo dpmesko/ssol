@@ -1,15 +1,15 @@
 # "make test" Compiles everything and runs the regression tests
 
 # commented out for the purposes of hello world
-.PHONY : test
-test : all testall.sh
-	./testall.sh
+#.PHONY : test
+#test : all testall.sh
+#	./testall.sh
 
 # "make all" builds the executable as well as the "printbig" library designed
 # to test linking external code
 
 .PHONY : all
-all : ssol.native printbig draw 
+all : ssol.native printbig draw
 
 
 # "make ssol.native" compiles the compiler
@@ -30,7 +30,6 @@ clean :
 	ocamlbuild -clean
 	rm -rf testall.log ocamlllvm *.diff
 	rm -f *.err *.ll
-	rm -f *.s
 	rm -f *.o
 
 # Testing the "printbig" example

@@ -131,11 +131,11 @@ let translate (globals, functions) =
       | SStringLit l -> L.build_global_stringptr l "str" builder
       | SNoexpr     -> L.const_int i32_t 0
       | SId s       -> L.build_load (lookup s locals) s builder
-(*			| SArrayLit	slist	->
+			| SArrayLit slist	->
+					let ty = fst (List.hd slist) in
 					let sarr = Array.of_list slist in
-					let ty = fst(sarr.(0)) in
-					let lvarr = Array.map (fun e -> expr builder locals (snd e)) sarr in
-					(L.const_array (ltype_of_typ ty) lvarr)  *) 
+					let lvarr = Array.map (fun e -> expr builder locals e) sarr in
+					(L.const_array (ltype_of_typ ty) lvarr) 
 			| SAssign (s, e) -> let e' = expr builder locals e in
                           ignore(L.build_store e' (lookup s locals) builder); e'
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
