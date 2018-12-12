@@ -222,18 +222,12 @@ let translate (globals, functions) =
         	let local_var = L.build_alloca (ltype_of_typ ty) name builder in
         	let locals = StringMap.add name local_var locals in
           	ignore (expr builder locals (ty,SAssign(name, sx))); (builder, locals)
-      | SADecl(ty,name, sx) ->
-	  		(*let str_index = L.string_of_llvalue (expr builder locals sx) in
-			let index = int_of_string str_index in
-	 		let local_var = L.build_alloca (ltype_of_typ (A.Array(ty, index))) name builder in
-		   	let locals = StringMap.add name local_var locals in
-		(builder, locals)*)
-
-			let n = expr builder locals sx in
-			let local_var  = L.build_array_alloca (ltype_of_typ ty) n name builder in
-			let locals = StringMap.add name local_var locals in
+      | SADecl(ty,name, n) ->
+			let arr = A.Array(ty,n) in
+			let len = (L.const_int i32_t n) in 
+			let local_var = (L.build_array_alloca (ltype_of_typ (A.Array(ty, n))) len name builder) in
+			let locals = StringMap.add name local_var locals in 
 			(builder, locals)
-
       | SExpr e -> ignore(expr builder locals e); (builder, locals)
       | SReturn e -> ignore(match fdecl.styp with
                               (* Special "return nothing" instr *)
