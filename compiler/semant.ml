@@ -180,17 +180,17 @@ let check (globals, functions) =
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex
           in (check_assign lt rt err, SAssign(var, (rt, e')))
-			| Access(arr, ind) ->
+	  | Access(arr, ind) ->
 					let arrtyp = type_of_identifier locals arr 
 					and (ityp, iex) as ind' = expr locals ind in
 					(match arrtyp with
 							Array(t, s) -> (match ityp with
-									Int -> (Array(t, s), SAccess(arr, ind'))
+									Int -> (t, SAccess(arr, ind'))
 								|	_ -> raise (Failure ("expected Int for array index value, " ^ 
 													"but was given " ^ string_of_sexpr ind')) )
 				   	| _ -> raise (Failure ("cannot access index " ^ string_of_sexpr ind' ^ 
 									" of " ^ arr ^ ": it has type " ^ string_of_typ arrtyp)) )
-			| ArrayAssign(arr, ind, ex) ->
+	  | ArrayAssign(arr, ind, ex) ->
 		 			let arrtyp = type_of_identifier locals arr
 				  and ind' = expr locals ind
 					and ex'= expr locals ex in
@@ -297,19 +297,19 @@ let check (globals, functions) =
             (match s with 
                 VDecl(t,name) -> 
                 (* TODO: CHECK FOR DUPLICATE *)
-									let block_locals = (match t with 
-											Point -> StringMap.add name (t, Some StringMap.empty) block_locals
- 										| Curve -> StringMap.add name (t, Some StringMap.empty) block_locals
-										| Canvas -> StringMap.add name (t, Some StringMap.empty) block_locals 
-										| _ -> StringMap.add name (t, None) block_locals )
-									in [check_stmt block_locals s] @ check_block block_locals ssl ss
-              | VDeclAssign(t,name,_) -> 
-                let block_locals = (match t with 
-											Point -> StringMap.add name (t, Some StringMap.empty) block_locals
- 										| Curve -> StringMap.add name (t, Some StringMap.empty) block_locals
-										| Canvas -> StringMap.add name (t, Some StringMap.empty) block_locals 
-										| _ -> StringMap.add name (t, None) block_locals )
-                  in [check_stmt block_locals s] @ check_block block_locals ssl ss
+                  let block_locals = StringMap.add name (t, None) block_locals
+                    in [check_stmt block_locals s] @ check_block block_locals ssl ss
+              | VDeclAssign(t,name,e) ->
+								let sx = expr block_locals e in
+								let typ = (match fst(sx) with
+												Array(tp,s) -> if tp == t 
+													then Array(tp,s) 
+													else raise(Failure("Array literal is of inconsistent type"))
+											| _ -> if fst(sx) == t
+													then fst(sx) 
+													else raise(Failure("illegal assignment"))) in
+								let block_locals = StringMap.add name (typ,None) block_locals in
+                  [check_stmt block_locals s] @ check_block block_locals ssl ss
               | ADecl(t,name, n) -> 
                 let block_locals = StringMap.add name (Array(t,n), None) block_locals
                   in [check_stmt block_locals s] @ check_block block_locals ssl ss
@@ -319,10 +319,8 @@ let check (globals, functions) =
 		| VDecl(t,s) -> SVDecl(t,s)
 	  | VDeclAssign(t,s,e) -> 
 			let sx = expr locals e in
-			let retval = match fst(sx) with
-				t -> SVDeclAssign(t,s,sx)
-				| _ -> raise(Failure("Cannot assign " ^ string_of_typ (fst sx) ^ " to " ^ string_of_typ t)) 
-				in retval
+			let ty = type_of_identifier locals s in 
+			SVDeclAssign(ty,s,sx)
 	  | ADecl(t,s,n) -> SADecl(t,s,n) 
 	  | Expr e -> SExpr (expr locals e)
       | If(p, b1, b2) -> SIf(check_bool_expr locals p, check_stmt locals b1, check_stmt locals b2)
