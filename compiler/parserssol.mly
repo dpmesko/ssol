@@ -83,7 +83,7 @@ vdecl_stmt:
     typ ID SEMI { VDecl($1,$2)}
   |  typ ID ASSIGN expr SEMI { VDeclAssign($1, $2, $4) }
   |	typ ID ASSIGN array_lit SEMI { VDeclAssign($1, $2, $4) }
-  | typ ID LBRACK expr RBRACK SEMI { ADecl($1, $2, $4) }
+  | typ ID LBRACK LITERAL RBRACK SEMI { ADecl($1, $2, $4) }
 
 /* FIGURE OUT BREAK,CONTINUE RULE */
 stmt:

@@ -32,11 +32,13 @@ let translate (globals, functions) =
   and i1_t       = L.i1_type     context
   and str_t	 = L.pointer_type (L.i8_type context)
   and float_t    = L.double_type context
-  and void_t     = L.void_type   context in
-  let ptstruct_t = L.struct_type context [|L.i32_type context ; L.i32_type context|] in 
+  and void_t     = L.void_type   context 
+  and array_t 	 = L.array_type in 
+  let ptstruct_t = L.struct_type context [|L.double_type context ; L.double_type context|] in 
   let cstruct_t = L.struct_type context [| ptstruct_t ; ptstruct_t ; ptstruct_t ; ptstruct_t|] in
+  
   (* Return the LLVM type for a SSOL type *)
-  let ltype_of_typ = function
+  let rec ltype_of_typ = function
       A.Int   -> i32_t
     | A.Bool  -> i1_t
     | A.Float -> float_t
@@ -45,6 +47,8 @@ let translate (globals, functions) =
     | A.Char  -> i8_t
     | A.Point -> ptstruct_t
     | A.Curve -> cstruct_t
+	| A.Array(ty, n) -> array_t (ltype_of_typ ty) n
+
   in
 
   (* Create a map of global variables after creating each *)
@@ -186,10 +190,13 @@ let translate (globals, functions) =
 		| SCall ("draw", [e; ef]) ->
 			L.build_call draw_func [| (expr builder locals e) ; (expr builder locals ef) |]
 	 			"draw" builder
-(*    | SConstructor (A.Point, [f1;f2]) ->
-                    L.const_struct context [|(expr builder f1) ; (expr builder f2)|]
-    | SConstructor (A.Curve, [e]) ->
-                L.struct_type context (L.array_type float_t 4)*)
+    | SConstructor (A.Point, [f1;f2]) ->
+                L.const_struct context [| (expr builder locals f1) ; (expr builder locals f2) |]
+    | SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> (*w point constructors*)
+                L.const_struct context [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p3) |]  
+    (*| SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> (*w point ids*)
+                    L.const_struct context [|L.build_load (lookup p1 locals) p1 builder ; L.build_load (lookup p2 locals) p2 builder ; L.build_load (lookup p3 locals) p3 builder ; L.build_load (lookup p4 locals) p4 builder |]*)
+
     in
     
     (* LLVM insists each basic block end with exactly one "terminator" 
@@ -209,15 +216,20 @@ let translate (globals, functions) =
 	      SBlock sl -> List.fold_left (fun (b, lv) s -> stmt b lv s) (builder, locals) sl
       (* | SVDdecl(ty, name) ->  *)
       | SVDecl(ty, name) ->
-        let local_var = L.build_alloca (ltype_of_typ ty) name builder in
-        let locals = StringMap.add name local_var locals in
+        	let local_var = L.build_alloca (ltype_of_typ ty) name builder in
+        	let locals = StringMap.add name local_var locals in
         (builder, locals)
       | SVDeclAssign(ty, name, sx) ->  
       (* HUGE PROBLEM HERE. NEED TO PASS LOCAL STRING MAP TO expr in order to save the right value!!!! *)
-        let local_var = L.build_alloca (ltype_of_typ ty) name builder in
-        let locals = StringMap.add name local_var locals in
-          ignore (expr builder locals (ty,SAssign(name, sx))); (builder, locals)
-      (*| SADecl(ty,name, sx) -> *)
+        	let local_var = L.build_alloca (ltype_of_typ ty) name builder in
+        	let locals = StringMap.add name local_var locals in
+          	ignore (expr builder locals (ty,SAssign(name, sx))); (builder, locals)
+      | SADecl(ty,name, n) ->
+			let arr = A.Array(ty,n) in
+			let len = (L.const_int i32_t n) in 
+			let local_var = (L.build_array_alloca (ltype_of_typ (A.Array(ty, n))) len name builder) in
+			let locals = StringMap.add name local_var locals in 
+			(builder, locals)
       | SExpr e -> ignore(expr builder locals e); (builder, locals)
       | SReturn e -> ignore(match fdecl.styp with
                               (* Special "return nothing" instr *)

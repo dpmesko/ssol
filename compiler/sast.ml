@@ -24,7 +24,7 @@ and sx =
 type sstmt =
     SVDecl of typ * string
   | SVDeclAssign of typ * string * sexpr
-  | SADecl of typ * string * sexpr
+  | SADecl of typ * string * int 
   | SBlock of sstmt list
   | SExpr of sexpr
   | SReturn of sexpr
@@ -63,14 +63,13 @@ let rec string_of_sexpr (t, e) =
   | SArrayAssign(arr, index, rval) -> arr ^ "[" ^ string_of_sexpr index ^ "]" ^ string_of_sexpr rval
   | SCall(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
-	| SConstructor(typ, args) -> string_of_typ typ ^ "(" ^ String.concat ", " (List.map string_of_sexpr args) ^ ")"
-	| SNoexpr -> ""
-				  ) ^ ")"				     
+  | SConstructor(typ, args) -> string_of_typ typ ^ "(" ^ String.concat ", " (List.map string_of_sexpr args) ^ ")"
+  | SNoexpr -> ""  ) ^ ")"				     
 
 let rec string_of_sstmt = function
     SVDecl(t, i) -> string_of_typ t ^ " " ^ i ^ "\n"
   | SVDeclAssign(t, i, e) -> string_of_typ t ^ " " ^ i ^ " = " ^ string_of_sexpr e ^ "\n"
-  | SADecl(t, i, s) -> string_of_typ t ^ " " ^ i ^ "[" ^ string_of_sexpr s ^ "]\n"
+  | SADecl(t, i, s) -> string_of_typ t ^ " " ^ i ^ "[" ^ string_of_int s ^ "]\n"
   | SBlock(stmts) ->
       "{\n" ^ String.concat "" (List.map string_of_sstmt stmts) ^ "}\n"
   | SExpr(expr) -> string_of_sexpr expr ^ ";\n";
