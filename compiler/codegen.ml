@@ -30,11 +30,15 @@ let translate (globals, functions) =
   let i32_t      = L.i32_type    context
   and i8_t       = L.i8_type     context 
   and i1_t       = L.i1_type     context
-  and str_t	 = L.pointer_type (L.i8_type context) 
+  and str_t	 = L.pointer_type (L.i8_type context)
   and void_t     = L.void_type   context in
+
   let float_t    = L.double_type context in
   let ptstruct_t = L.struct_type context [| float_t ; float_t |] in 
   let cstruct_t = L.struct_type context [| ptstruct_t ; ptstruct_t ; ptstruct_t ; ptstruct_t|] in
+  let canvasnode_t = L.struct_type context [| (L.pointer_type ) ; (L.pointer_type ptstruct_t) ; (L.pointer_type cstruct_t) ; (L.i32_type context) |] in
+  let canvas_t   = L.struct_type context [| L.pointer_type canvasnode_t; L.i32_type context ; L.i32_type context |] 
+  in
   
   (* Return the LLVM type for a SSOL type *)
   let ltype_of_typ = function
@@ -46,6 +50,8 @@ let translate (globals, functions) =
     | A.Char  -> i8_t
     | A.Point -> ptstruct_t
     | A.Curve -> cstruct_t
+    | A.Canvas -> canvas_t
+    (*| put canvas node here without A., used in pipe and pipend*)
   in
 
   (* Create a map of global variables after creating each *)
