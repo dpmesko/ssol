@@ -193,7 +193,7 @@ let translate (globals, functions) =
 	    A.Neg when t = A.Float -> L.build_fneg 
 	  | A.Neg                  -> L.build_neg
     | A.Not                  -> L.build_not) e' "tmp" builder
-    | SCall ("print", [e]) | SCall ("printb", [e]) ->
+		| SCall ("print", [e]) | SCall ("printb", [e]) ->
 	  	L.build_call printf_func [| int_format_str ; (expr builder locals e) |]
 	    	"printf" builder
     | SCall ("printbig", [e]) ->
@@ -205,7 +205,11 @@ let translate (globals, functions) =
 		| SCall ("draw", [e; ef]) ->
 			L.build_call draw_func [| (expr builder locals e) ; (expr builder locals ef) |]
 	 			"draw" builder
-    | SConstructor (A.Point, [f1;f2]) ->
+    | SCall (fname, args) ->
+				let	(ldev, sfd) = StringMap.find fname function_decls in
+				let actuals = Array.of_list (List.map (fun e -> expr builder locals e) args) in
+				L.build_call ldev actuals fname builder 
+		| SConstructor (A.Point, [f1;f2]) ->
                 L.const_struct context [| (expr builder locals f1) ; (expr builder locals f2) |]
     | SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> (*w point constructors*)
                 L.const_struct context [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p4) |]
