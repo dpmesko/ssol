@@ -136,9 +136,20 @@ let translate (globals, functions) =
       | SStringLit l -> L.build_global_stringptr l "str" builder
       | SNoexpr     -> L.const_int i32_t 0
       | SId s       -> L.build_load (lookup s locals) s builder
-      | SAssign (s, e) -> let e' = expr builder locals e in
+			| SArrayLit slist	->
+					let ty = fst (List.hd slist) in
+					let sarr = Array.of_list slist in
+					let lvarr = Array.map (fun e -> expr builder locals e) sarr in
+					(L.const_array (ltype_of_typ ty) lvarr) 
+			| SAssign (s, e) -> let e' = expr builder locals e in
                           ignore(L.build_store e' (lookup s locals) builder); e'
+			| SAccess(arr, ind) ->
+					let i' = expr builder locals ind in
+					let indices = [|L.const_int i32_t 0; i'|] in
+					let ref = L.build_gep (lookup arr locals) indices arr builder in
+					(L.build_load ref arr builder)
       | SBinop ((A.Float,_ ) as e1, op, e2) ->
+
 	  let e1' = expr builder locals e1
 	  and e2' = expr builder locals e2 in
 	  (match op with 
@@ -189,10 +200,7 @@ let translate (globals, functions) =
     | SCall ("printf", [e]) -> 
 	  	L.build_call printf_func [| float_format_str ; (expr builder locals e) |]
 	    	"printf" builder
-    (*  | SCall ("sprintf", [e]) ->
-	  L.build_call sprint_func [| char_format_str ; (expr builder locals e) |]
-	    "sprintf" builder*) 
-		| SCall ("draw", [e; ef]) ->
+	| SCall ("draw", [e; ef]) ->
 			L.build_call draw_func [| (expr builder locals e) ; (expr builder locals ef) |]
 	 			"draw" builder
     | SConstructor (A.Point, [f1;f2]) ->
@@ -226,8 +234,8 @@ let translate (globals, functions) =
         	let local_var = L.build_alloca (ltype_of_typ ty) name builder in
         	let locals = StringMap.add name local_var locals in
         (builder, locals)
-      | SVDeclAssign(ty, name, sx) ->  
-      (* HUGE PROBLEM HERE. NEED TO PASS LOCAL STRING MAP TO expr in order to save the right value!!!! *)
+      | SVDeclAssign(ty, name, sx) ->
+					 
         	let local_var = L.build_alloca (ltype_of_typ ty) name builder in
         	let locals = StringMap.add name local_var locals in
           	ignore (expr builder locals (ty,SAssign(name, sx))); (builder, locals)
