@@ -1,15 +1,15 @@
 # "make test" Compiles everything and runs the regression tests
 
 # commented out for the purposes of hello world
-.PHONY : test
-test : all testall.sh
-	./testall.sh
+#.PHONY : test
+#test : all testall.sh
+#	./testall.sh
 
 # "make all" builds the executable as well as the "printbig" library designed
 # to test linking external code
 
 .PHONY : all
-all : ssol.native printbig draw 
+all : ssol.native printbig draw
 
 
 # "make ssol.native" compiles the compiler
@@ -37,6 +37,8 @@ clean :
 printbig : printbig.c
 	#cc -c -DBUILD_TEST printbig.c
 	gcc -c -fPIC printbig.c
+	gcc -c -fPIC draw.c
+	gcc -c -fPIC svg.c
 	#llvm-as-6.0 printbig.ll -o printbig.bc
 
 draw : draw.c svg.c
