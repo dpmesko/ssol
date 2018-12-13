@@ -47,7 +47,7 @@ let translate (globals, functions) =
     | A.Char  -> i8_t
     | A.Point -> ptstruct_t
     | A.Curve -> cstruct_t
-	| A.Array(ty, n) -> array_t (ltype_of_typ ty) n
+		| A.Array(ty, n) -> array_t (ltype_of_typ ty) n
 
   in
 
@@ -69,9 +69,9 @@ let translate (globals, functions) =
       L.function_type i32_t [| i32_t |] in
   let printbig_func : L.llvalue =
       L.declare_function "printbig" printbig_t the_module in
-  let sprintf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t ; L.pointer_type i8_t |] in
+  (*let sprintf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t ; L.pointer_type i8_t |] in
   let sprint_func =
-      L.declare_function "sprintf" sprintf_t the_module in
+      L.declare_function "sprintf" sprintf_t the_module in*)
 	let draw_t : L.lltype = 
  			L.function_type i32_t [| str_t ; str_t |] in
 	let draw_func : L.llvalue =
@@ -169,7 +169,7 @@ let translate (globals, functions) =
 	    A.Add     -> L.build_add
 	  | A.Sub     -> L.build_sub
 	  | A.Mult    -> L.build_mul
-          | A.Div     -> L.build_sdiv
+    | A.Div     -> L.build_sdiv
 	  | A.Mod     -> L.build_srem
 	  | A.And     -> L.build_and
 	  | A.Or      -> L.build_or
@@ -195,13 +195,13 @@ let translate (globals, functions) =
     | SCall ("printf", [e]) -> 
 	  	L.build_call printf_func [| float_format_str ; (expr builder locals e) |]
 	    	"printf" builder
-	| SCall ("draw", [e; ef]) ->
+		| SCall ("draw", [e; ef]) ->
 			L.build_call draw_func [| (expr builder locals e) ; (expr builder locals ef) |]
 	 			"draw" builder
     | SConstructor (A.Point, [f1;f2]) ->
                 L.const_struct context [| (expr builder locals f1) ; (expr builder locals f2) |]
     | SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> (*w point constructors*)
-                L.const_struct context [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p3) |]  
+                L.const_struct context [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p4) |]  
 
     in
     
@@ -231,10 +231,10 @@ let translate (globals, functions) =
         	let locals = StringMap.add name local_var locals in
           	ignore (expr builder locals (ty,SAssign(name, sx))); (builder, locals)
       | SADecl(ty,name, n) ->
-			let arr = A.Array(ty,n) in
-			let len = (L.const_int i32_t n) in 
-			let local_var = (L.build_array_alloca (ltype_of_typ (A.Array(ty, n))) len name builder) in
-			let locals = StringMap.add name local_var locals in 
+				let arr = A.Array(ty,n) in
+				let len = (L.const_int i32_t n) in 
+				let local_var = (L.build_array_alloca (ltype_of_typ arr) len name builder) in
+				let locals = StringMap.add name local_var locals in 
 			(builder, locals)
       | SExpr e -> ignore(expr builder locals e); (builder, locals)
       | SReturn e -> ignore(match fdecl.styp with

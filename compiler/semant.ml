@@ -161,7 +161,7 @@ let check (globals, functions) =
       | CharLit l   -> (Char, SCharLit l)
       | StringLit l -> (String, SStringLit l)
       | ArrayLit elist -> 
-				  let rec typmatch t (ty, _) = 
+				  let typmatch t (ty, _) = 
 						if t == ty then
 		  				ty
 						else
@@ -196,7 +196,7 @@ let check (globals, functions) =
 					and ex'= expr locals ex in
 					let err = "illegal assignment " ^ (string_of_typ arrtyp) ^ " = " ^ (string_of_typ (fst ex')) in
 					(match arrtyp with
-							Array(t, s) -> (check_assign t (fst ex') err, SArrayAssign(arr, ind', ex'))
+							Array(t, _) -> (check_assign t (fst ex') err, SArrayAssign(arr, ind', ex'))
 						| _ -> raise (Failure (err)) )
 			| Field(obj, mem) as e -> (Int, SField(obj, expr locals mem)) (*
 					let rec check_mem lst = (function
@@ -317,7 +317,7 @@ let check (globals, functions) =
           | []  -> ssl 
         in SBlock(check_block locals [] sl)
 		| VDecl(t,s) -> SVDecl(t,s)
-	  | VDeclAssign(t,s,e) -> 
+	  | VDeclAssign(_,s,e) -> 
 			let sx = expr locals e in
 			let ty = type_of_identifier locals s in 
 			SVDeclAssign(ty,s,sx)
