@@ -36,7 +36,9 @@ let translate (globals, functions) =
   let float_t    = L.double_type context in
   let ptstruct_t = L.struct_type context [| float_t ; float_t |] in 
   let cstruct_t = L.struct_type context [| ptstruct_t ; ptstruct_t ; ptstruct_t ; ptstruct_t|] in
-  let canvasnode_t = L.struct_type context [| (L.pointer_type (L.named_struct_type context "next_canvasnode")) ; (L.pointer_type ptstruct_t) ; (L.pointer_type cstruct_t) ; (L.i32_type context) |] in
+  let canvasnode_t = L.named_struct_type context "next_canvasnode" in
+  let canvasnode_b = L.struct_set_body canvasnode_t [| (L.pointer_type (canvasnode_t)) ; (L.pointer_type ptstruct_t) ; (L.pointer_type cstruct_t) ; (L.i32_type context) |] false in
+  (*let canvasnode_t = L.struct_type context [| (L.pointer_type (canvasnode)) ; (L.pointer_type ptstruct_t) ; (L.pointer_type cstruct_t) ; (L.i32_type context) |] in*)
   let canvas_t   = L.struct_type context [| L.pointer_type canvasnode_t; L.i32_type context ; L.i32_type context |] 
   in
   
@@ -210,8 +212,8 @@ let translate (globals, functions) =
     (*| SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> (*w point ids*)
                     L.const_struct context [|L.build_load (lookup p1 locals) p1 builder ; L.build_load (lookup p2 locals) p2 builder ; L.build_load (lookup p3 locals) p3 builder ; L.build_load (lookup p4 locals) p4 builder |]*)
     | SConstructor (A.Canvas, [x ; y]) ->
-                    L.const_struct context [| (L.build_struct_gep (L.const_struct context [| canvasnode_t |]) 0 "canvas" builder ) ; (expr builder locals x); (expr builder locals y) |]
-
+                L.const_struct context [| (L.const_pointer_null canvasnode_t) ; (expr builder locals x); (expr builder locals y) |]
+(*when we build_struct_gep from pipe, we will need to do a build_store to fill the null canvasnode_t pointer*)
     in
     
     (* LLVM insists each basic block end with exactly one "terminator" 
