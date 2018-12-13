@@ -143,7 +143,13 @@ let translate (globals, functions) =
 					let indices = [|L.const_int i32_t 0; i'|] in
 					let ref = L.build_gep (lookup arr locals) indices arr builder in
 					(L.build_load ref arr builder)
-      | SBinop ((A.Float,_ ) as e1, op, e2) ->
+      | SArrayAssign(arr, ind, ex) ->
+					let i' = expr builder locals ind in
+					let ex' = expr builder locals ex in
+					let indices = [|L.const_int i32_t 0; i'|] in 
+					let ref = L.build_gep (lookup arr locals) indices arr builder in
+					ignore(L.build_store ex' ref builder); ex'
+			| SBinop ((A.Float,_ ) as e1, op, e2) ->
 
 	  let e1' = expr builder locals e1
 	  and e2' = expr builder locals e2 in
