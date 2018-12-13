@@ -207,8 +207,8 @@ let translate (globals, functions) =
 	 			"draw" builder
     | SCall (fname, args) ->
 				let	(ldev, sfd) = StringMap.find fname function_decls in
-				let actuals = Array.of_list (List.map (fun e -> expr builder locals e) args) in
-				L.build_call ldev actuals fname builder 
+				let actuals = List.rev (List.map (fun e -> expr builder locals e) (List.rev args)) in
+				L.build_call ldev (Array.of_list actuals) fname builder 
 		| SConstructor (A.Point, [f1;f2]) ->
                 L.const_struct context [| (expr builder locals f1) ; (expr builder locals f2) |]
     | SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> (*w point constructors*)
