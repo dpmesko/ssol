@@ -31,8 +31,8 @@ let translate (globals, functions) =
   and i8_t       = L.i8_type     context 
   and i1_t       = L.i1_type     context
   and str_t	 = L.pointer_type (L.i8_type context)
-  and void_t     = L.void_type   context in
-
+  and void_t     = L.void_type   context
+  and array_t 	 = L.array_type in 
   let float_t    = L.double_type context in
   let ptstruct_t = L.struct_type context [| float_t ; float_t |] in 
   let cstruct_t = L.struct_type context [| ptstruct_t ; ptstruct_t ; ptstruct_t ; ptstruct_t|] in
@@ -201,6 +201,8 @@ let translate (globals, functions) =
                 L.const_struct context [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p3) |]  
     (*| SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> (*w point ids*)
                     L.const_struct context [|L.build_load (lookup p1 locals) p1 builder ; L.build_load (lookup p2 locals) p2 builder ; L.build_load (lookup p3 locals) p3 builder ; L.build_load (lookup p4 locals) p4 builder |]*)
+    | SConstructor (A.Canvas, [x ; y]) ->
+                    L.const_struct context [| (L.build_struct_gep (L.const_struct context [| canvasnode_t |]) 0 "canvas" builder ) ; (expr builder locals x); (expr builder locals y) |]
 
     in
     
