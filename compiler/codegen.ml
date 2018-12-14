@@ -95,7 +95,8 @@ let translate (globals, functions) =
 
     let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
     and char_format_str = L.build_global_stringptr "%c\n" "fmt" builder
-    and float_format_str = L.build_global_stringptr "%g\n" "fmt" builder in
+    and float_format_str = L.build_global_stringptr "%g\n" "fmt" builder
+		and str_format_str = L.build_global_stringptr "%s\n" "fmt" builder in
 
     (* Construct the function's "locals": formal arguments and locally
        declared variables.  Allocate each on the stack, initialize their
@@ -150,6 +151,7 @@ let translate (globals, functions) =
 					let indices = [|L.const_int i32_t 0; i'|] in 
 					let ref = L.build_gep (lookup arr locals) indices arr builder in
 					ignore(L.build_store ex' ref builder); ex'
+		(*	| SField( *)
 			| SBinop ((A.Float,_ ) as e1, op, e2) ->
 
 	  let e1' = expr builder locals e1
@@ -187,7 +189,7 @@ let translate (globals, functions) =
 	  | A.Greater -> L.build_icmp L.Icmp.Sgt
 	  | A.Geq     -> L.build_icmp L.Icmp.Sge
 	  ) e1' e2' "tmp" builder
-      | SUnop(op, ((t, _) as e)) ->
+		| SUnop(op, ((t, _) as e)) ->
           let e' = expr builder locals e in
 	  (match op with
 	    A.Neg when t = A.Float -> L.build_fneg 
@@ -213,6 +215,7 @@ let translate (globals, functions) =
                 L.const_struct context [| (expr builder locals f1) ; (expr builder locals f2) |]
     | SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> (*w point constructors*)
                 L.const_struct context [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p4) |]
+		| SConstructor (A.Canvas,_) -> raise(Failure("No constructor exists for Canvas"))
 		| SConstructor(t,_) -> raise(Failure("No constructor exists for "^ (A.string_of_typ t) ))
 
     in
