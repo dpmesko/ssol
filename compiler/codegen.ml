@@ -213,7 +213,7 @@ let translate (globals, functions) =
                     L.const_struct context [|L.build_load (lookup p1 locals) p1 builder ; L.build_load (lookup p2 locals) p2 builder ; L.build_load (lookup p3 locals) p3 builder ; L.build_load (lookup p4 locals) p4 builder |]*)
     | SConstructor (A.Canvas, [x ; y]) ->
                 L.const_struct context [| (L.const_pointer_null canvasnode_t) ; (expr builder locals x); (expr builder locals y) |]
-(*when we build_struct_gep from pipe, we will need to do a build_store to fill the null canvasnode_t pointer*)
+    (*TODO: when we build_struct_gep from pipe, we will need to do a build_store to fill the null canvasnode_t pointer*)
     in
     
     (* LLVM insists each basic block end with exactly one "terminator" 
