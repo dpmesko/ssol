@@ -230,6 +230,7 @@ let check (globals, functions) =
           in (fd.typ, SCall(fname, args'))
 			| Constructor(ty, exl) -> 
 					let sxl = List.map (expr locals) exl in
+					(* NEED TO CHECK ARGS! *)
 					match ty with
 							Point -> (ty, SConstructor(ty, sxl))
 						| Curve -> (ty, SConstructor(ty, sxl))
