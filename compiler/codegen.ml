@@ -76,9 +76,9 @@ let translate (globals, functions) =
       L.function_type i32_t [| i32_t |] in
   let printbig_func : L.llvalue =
       L.declare_function "printbig" printbig_t the_module in
-  let sprintf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t ; L.pointer_type i8_t |] in
+  (*let sprintf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t ; L.pointer_type i8_t |] in
   let sprint_func =
-      L.declare_function "sprintf" sprintf_t the_module in
+      L.declare_function "sprintf" sprintf_t the_module in*)
 	let draw_t : L.lltype = 
  			L.function_type i32_t [| str_t ; str_t |] in
 	let draw_func : L.llvalue =
@@ -102,7 +102,8 @@ let translate (globals, functions) =
 
     let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
     and char_format_str = L.build_global_stringptr "%c\n" "fmt" builder
-    and float_format_str = L.build_global_stringptr "%g\n" "fmt" builder in
+    and float_format_str = L.build_global_stringptr "%g\n" "fmt" builder
+		and str_format_str = L.build_global_stringptr "%s\n" "fmt" builder in
 
     (* Construct the function's "locals": formal arguments and locally
        declared variables.  Allocate each on the stack, initialize their
@@ -135,6 +136,7 @@ let translate (globals, functions) =
 	      SLiteral i  -> L.const_int i32_t i
       | SBoolLit b  -> L.const_int i1_t (if b then 1 else 0)
       | SFliteral l -> L.const_float_of_string float_t l
+			| SCharLit l -> L.const_int i8_t (Char.code l)
       | SStringLit l -> L.build_global_stringptr l "str" builder
       | SNoexpr     -> L.const_int i32_t 0
       | SId s       -> L.build_load (lookup s locals) s builder
@@ -150,7 +152,14 @@ let translate (globals, functions) =
 					let indices = [|L.const_int i32_t 0; i'|] in
 					let ref = L.build_gep (lookup arr locals) indices arr builder in
 					(L.build_load ref arr builder)
-      | SBinop ((A.Float,_ ) as e1, op, e2) ->
+      | SArrayAssign(arr, ind, ex) ->
+					let i' = expr builder locals ind in
+					let ex' = expr builder locals ex in
+					let indices = [|L.const_int i32_t 0; i'|] in 
+					let ref = L.build_gep (lookup arr locals) indices arr builder in
+					ignore(L.build_store ex' ref builder); ex'
+		(*	| SField( *)
+			| SBinop ((A.Float,_ ) as e1, op, e2) ->
 
 	  let e1' = expr builder locals e1
 	  and e2' = expr builder locals e2 in
@@ -176,7 +185,7 @@ let translate (globals, functions) =
 	    A.Add     -> L.build_add
 	  | A.Sub     -> L.build_sub
 	  | A.Mult    -> L.build_mul
-          | A.Div     -> L.build_sdiv
+    | A.Div     -> L.build_sdiv
 	  | A.Mod     -> L.build_srem
 	  | A.And     -> L.build_and
 	  | A.Or      -> L.build_or
@@ -187,13 +196,13 @@ let translate (globals, functions) =
 	  | A.Greater -> L.build_icmp L.Icmp.Sgt
 	  | A.Geq     -> L.build_icmp L.Icmp.Sge
 	  ) e1' e2' "tmp" builder
-      | SUnop(op, ((t, _) as e)) ->
+		| SUnop(op, ((t, _) as e)) ->
           let e' = expr builder locals e in
 	  (match op with
 	    A.Neg when t = A.Float -> L.build_fneg 
 	  | A.Neg                  -> L.build_neg
     | A.Not                  -> L.build_not) e' "tmp" builder
-    | SCall ("print", [e]) | SCall ("printb", [e]) ->
+		| SCall ("print", [e]) | SCall ("printb", [e]) ->
 	  	L.build_call printf_func [| int_format_str ; (expr builder locals e) |]
 	    	"printf" builder
     | SCall ("printbig", [e]) ->
@@ -202,10 +211,14 @@ let translate (globals, functions) =
     | SCall ("printf", [e]) -> 
 	  	L.build_call printf_func [| float_format_str ; (expr builder locals e) |]
 	    	"printf" builder
-	| SCall ("draw", [e; ef]) ->
+		| SCall ("draw", [e; ef]) ->
 			L.build_call draw_func [| (expr builder locals e) ; (expr builder locals ef) |]
 	 			"draw" builder
-    | SConstructor (A.Point, [f1;f2]) ->
+    | SCall (fname, args) ->
+				let	(ldev, sfd) = StringMap.find fname function_decls in
+				let actuals = List.rev (List.map (fun e -> expr builder locals e) (List.rev args)) in
+				L.build_call ldev (Array.of_list actuals) fname builder 
+		| SConstructor (A.Point, [f1;f2]) ->
                 L.const_struct context [| (expr builder locals f1) ; (expr builder locals f2) |]
     | SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> (*w point constructors*)
                 L.const_struct context [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p3) |]  
@@ -242,10 +255,10 @@ let translate (globals, functions) =
         	let locals = StringMap.add name local_var locals in
           	ignore (expr builder locals (ty,SAssign(name, sx))); (builder, locals)
       | SADecl(ty,name, n) ->
-			let arr = A.Array(ty,n) in
-			let len = (L.const_int i32_t n) in 
-			let local_var = (L.build_array_alloca (ltype_of_typ (A.Array(ty, n))) len name builder) in
-			let locals = StringMap.add name local_var locals in 
+				let arr = A.Array(ty,n) in
+				let len = (L.const_int i32_t n) in 
+				let local_var = (L.build_array_alloca (ltype_of_typ arr) len name builder) in
+				let locals = StringMap.add name local_var locals in 
 			(builder, locals)
       | SExpr e -> ignore(expr builder locals e); (builder, locals)
       | SReturn e -> ignore(match fdecl.styp with
