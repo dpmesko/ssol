@@ -186,7 +186,7 @@ let translate (globals, functions) =
 	  | A.Greater -> L.build_icmp L.Icmp.Sgt
 	  | A.Geq     -> L.build_icmp L.Icmp.Sge
 	  ) e1' e2' "tmp" builder
-      | SBinop(A.Canvas as can, op, crv) ->
+      | SBinop((A.Canvas,_) as can, op, crv) ->
           let can' = expr builder locals can
           and crv' = expr builder locals crv in
           (match op with
@@ -194,13 +194,13 @@ let translate (globals, functions) =
                    (*construct new node*)
                    let newnode = L.build_alloca canvasnode_t "newnode" builder in
                    let next_node_ptr = L.build_struct_gep newnode 0 "next_curve" builder in
-                   ignore (L.build_store (L.const_pointer_null canvasnode_t) next_node_ptr builder)
+                   L.build_store (L.const_pointer_null canvasnode_t) next_node_ptr builder;
                    let curve_ptr = L.build_struct_gep newnode 1 "curve" builder in
-                   ignore (L.build_store crv' curve_ptr builder)
+                   L.build_store crv' curve_ptr builder;
                    
                    let headptr = L.param can' 0 in
-                   ignore (L.build_store headptr next_node_ptr builder) (*have new node point to the thing canvas points to*)
-                   ignore (L.build_store newnode headptr builder) (*have canvas' headptr point to new node*)
+                   L.build_store headptr next_node_ptr builder; (*have new node point to the thing canvas points to*)
+                   L.build_store newnode headptr builder; (*have canvas' headptr point to new node*)
           ) can' crv' "pipend" builder
                 
       | SUnop(op, ((t, _) as e)) ->
