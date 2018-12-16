@@ -37,7 +37,7 @@ clean :
 printbig : printbig.c
 #	cc -c -DBUILD_TEST printbig.c
 	gcc -c -fPIC printbig.c
-	gcc -c  -fPIC svg.c 
+	gcc -c -fPIC svg.c 
 	gcc -c -fPIC draw.c
 #	gcc draw.o svg.o -o main
 #	llvm-as-6.0 printbig.ll -o printbig.bc
