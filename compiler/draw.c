@@ -30,6 +30,7 @@ void draw(struct canvas *canv, char *filename);
 // FUNCTIONS
 // --------------------------------------------------------
 
+/*
 int main()
 {
 		struct point pt1, pt2, pt3, pt4;
@@ -73,7 +74,7 @@ int main()
 		can.y = 500;
 
 		draw(&can, "main.svg");
-}
+}*/
 
 void draw(struct canvas *canv, char *filename)
 {

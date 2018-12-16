@@ -131,8 +131,6 @@ let translate (globals, functions) =
     in
 
 
-
-
     let mem_to_ind ty = match ty  with
       _ -> List.fold_left (fun m (name, ind) -> StringMap.add name ind m)
                   StringMap.empty [("e1",0); ("cp1",1); ("e2",2); ("cp2",3); ("x",0); ("y",1)]
@@ -243,7 +241,7 @@ let translate (globals, functions) =
     | SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> 
 				L.const_struct context [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p4) |]  
     | SConstructor (A.Canvas, [x ; y]) ->
-        L.const_struct context [| (expr builder locals x); (expr builder locals y) ; (L.const_pointer_null canvasnode_t)  |]
+        L.const_struct context [| (expr builder locals x); (expr builder locals y) ; (L.const_null (L.pointer_type canvasnode_t)) |]
     (*TODO: when we build_struct_gep from pipe, we will need to do a build_store to fill the null canvasnode_t pointer*)
     in
     
