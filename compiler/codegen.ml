@@ -37,7 +37,7 @@ let translate (globals, functions) =
   let ptstruct_t = L.struct_type context [| float_t ; float_t |] in 
   let cstruct_t = L.struct_type context [| ptstruct_t ; ptstruct_t ; ptstruct_t ; ptstruct_t|] in
   let canvasnode_t = L.named_struct_type context "next_canvasnode" in
-  let canvasnode_b = L.struct_set_body canvasnode_t [| (L.pointer_type (canvasnode_t)) ; (L.pointer_type ptstruct_t) ; (L.pointer_type cstruct_t) ; (L.i32_type context) |] false in
+  let canvasnode_b = L.struct_set_body canvasnode_t [| L.pointer_type (canvasnode_t) ; (L.pointer_type cstruct_t) |] false in
   (*let canvasnode_t = L.struct_type context [| (L.pointer_type (canvasnode)) ; (L.pointer_type ptstruct_t) ; (L.pointer_type cstruct_t) ; (L.i32_type context) |] in*)
   let canvas_t   = L.struct_type context [| L.pointer_type canvasnode_t; L.i32_type context ; L.i32_type context |] 
   in
