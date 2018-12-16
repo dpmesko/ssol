@@ -168,6 +168,21 @@ let translate (globals, functions) =
 	  | A.And | A.Or ->
 	      raise (Failure "internal error: semant should have rejected and/or on float")
 	  ) e1' e2' "tmp" builder
+      | SBinop((A.Canvas,_) as can, op, crv) ->
+          let can' = expr builder locals can
+          and crv' = expr builder locals crv in
+          (match op with
+           A.Pipend   -> 
+                   (*construct new node*)
+                   let newnode = L.build_alloca canvasnode_t "newnode" builder in
+                   let next_node_ptr = L.build_struct_gep newnode 0 "new_curve" builder in
+                   L.build_store (L.const_null (L.pointer_type canvasnode_t)) next_node_ptr builder;
+                   let curve_ptr = L.build_struct_gep newnode 1 "curve" builder in
+                   L.build_store crv' curve_ptr builder;
+                   let headptr = L.param can' 0 in
+                   L.build_store headptr next_node_ptr builder; (*have new node point to the thing canvas points to*)
+                   L.build_store newnode headptr builder; (*have canvas' headptr point to new node*)         
+          ) 
       | SBinop (e1, op, e2) ->
 	  let e1' = expr builder locals e1
 	  and e2' = expr builder locals e2 in
@@ -185,24 +200,7 @@ let translate (globals, functions) =
 	  | A.Leq     -> L.build_icmp L.Icmp.Sle
 	  | A.Greater -> L.build_icmp L.Icmp.Sgt
 	  | A.Geq     -> L.build_icmp L.Icmp.Sge
-	  ) e1' e2' "tmp" builder
-      | SBinop((A.Canvas,_) as can, op, crv) ->
-          let can' = expr builder locals can
-          and crv' = expr builder locals crv in
-          (match op with
-           A.Pipend   -> 
-                   (*construct new node*)
-                   let newnode = L.build_alloca canvasnode_t "newnode" builder in
-                   let next_node_ptr = L.build_struct_gep newnode 0 "next_curve" builder in
-                   L.build_store (L.const_pointer_null canvasnode_t) next_node_ptr builder;
-                   let curve_ptr = L.build_struct_gep newnode 1 "curve" builder in
-                   L.build_store crv' curve_ptr builder;
-                   
-                   let headptr = L.param can' 0 in
-                   L.build_store headptr next_node_ptr builder; (*have new node point to the thing canvas points to*)
-                   L.build_store newnode headptr builder; (*have canvas' headptr point to new node*)
-          ) can' crv' "pipend" builder
-                
+	  ) e1' e2' "tmp" builder 
       | SUnop(op, ((t, _) as e)) ->
           let e' = expr builder locals e in
 	  (match op with
@@ -226,7 +224,7 @@ let translate (globals, functions) =
     | SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> (*w point constructors*)
                 L.const_struct context [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p3) |]  
     | SConstructor (A.Canvas, [x ; y]) ->
-                L.const_struct context [| (L.const_pointer_null canvasnode_t) ; (expr builder locals x); (expr builder locals y) |]
+                L.const_struct context [| (L.const_null (L.pointer_type canvasnode_t)) ; (expr builder locals x); (expr builder locals y) |]
     
      (*TODO: when we build_struct_gep from pipe, we will need to do a build_store to fill the null canvasnode_t pointer*)
     in
