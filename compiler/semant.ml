@@ -174,16 +174,18 @@ let check (globals, functions) =
 			| Field(obj, mem)  -> 
 					let ty = type_of_identifier locals obj in
 					let memmap = member_map_of_type ty in
-					let smem = (*match mem with
-              Assign(v,e) as ex->
-                 (*  let lt = StringMap.find v memmap
-                  and (rt, e') = expr locals e in
-                  let err = "illegal assigoierfoierjfnment " ^ string_of_typ lt ^ " = " ^ 
-                    string_of_typ rt ^ " in " ^ string_of_expr ex ^ " for identifier Field." ^ v
-                  in (check_assign lt rt err, SAssign(v, (rt, e'))) *)
-
-                raise(Failure("assign ment in field "^ string_of_sexpr(expr locals e)))
-              | _ -> *)expr memmap mem 
+					let smem = match mem with
+              Assign(v,e) as ex-> 
+                   let ty = type_of_identifier memmap v in
+                      (match e with
+                         Fliteral f -> 
+                            let lt = StringMap.find v memmap
+                            and (rt, e') = expr locals e in
+                            let err = "illegal assigoierfoierjfnment " ^ string_of_typ lt ^ " = " ^ 
+                              string_of_typ rt ^ " in " ^ string_of_expr ex ^ " for identifier Field." ^ v
+                            in (check_assign lt rt err, SAssign(v, (rt, e')))
+                        | Id s ->  (ty,SAssign(v,(ty, SId s)) ) ) 
+              | _ -> expr memmap mem 
             in
 					(fst smem, SField(obj, smem))
 

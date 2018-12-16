@@ -166,6 +166,7 @@ let translate (globals, functions) =
 					let ref = L.build_gep (lookup arr locals) indices arr builder in
 					ignore(L.build_store ex' ref builder); ex'
 		| SField(id,sx) ->
+
           let getI t n= try StringMap.find n (mem_to_ind t) with Not_found -> raise(Failure("blahroig"))in
           let getNextVal o t n= L.build_struct_gep o (getI t n) n builder in
           let rec eval out t = function
@@ -173,10 +174,10 @@ let translate (globals, functions) =
               |  SId sid -> 
                     let ref = L.build_struct_gep out (getI t sid) sid builder in
                     L.build_load ref sid builder
-							| SAssign(s,e) -> 
+							| SAssign(s,e) as ex-> 
 									let ref = L.build_struct_gep out (getI t s) s builder in
-									let e' = expr builder locals e in
-									ignore(L.build_store e' ref builder); e' 
+									let e' =  expr builder locals e in
+									ignore(L.build_store e' ref builder); e'  
               | _ -> raise(Failure("some invalid field type used"))
           in eval (lookup id locals) (L.type_of (lookup id locals)) (snd sx)
         
