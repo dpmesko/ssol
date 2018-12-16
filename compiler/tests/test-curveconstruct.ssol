@@ -1,4 +1,9 @@
 int main() {
-	Curve(Point(1.0, 1.0), Point(1.0, 1.0), Point(1.0, 1.0), Point(1.0, 1.0));
+	Curve c = Curve(Point(1.0, 1.0), Point(1.0, 1.0), Point(1.0, 1.0), Point(1.0, 1.0));
+	c.cp1.x=5.0;
+	Point p;
+	p = Point(7.0,2.4);
+	c.cp1 = Point(2.2,3.3);
+	printf(c.cp1.x);
 	return 0; 
 }

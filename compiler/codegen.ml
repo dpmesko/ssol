@@ -34,11 +34,8 @@ let translate (globals, functions) =
   and void_t     = L.void_type   context
   and array_t 	 = L.array_type in 
   let float_t    = L.double_type context in
-  let ptstruct_t = L.named_struct_type context "ptstruct_t" in
-	let ptstruct_b = L.struct_set_body ptstruct_t [|float_t; float_t|] in 
-(*	L.struct_type context [| float_t ; float_t |] in *)
-  let cstruct_t = L.named_struct_type  
-	L.struct_type context [| ptstruct_t ; ptstruct_t ; ptstruct_t ; ptstruct_t|] in
+  let ptstruct_t = L.struct_type context [| float_t ; float_t |] in 
+  let cstruct_t = L.struct_type context [| ptstruct_t ; ptstruct_t ; ptstruct_t ; ptstruct_t|] in
   let canvasnode_t = L.named_struct_type context "next_canvasnode" in
   let canvasnode_b = L.struct_set_body canvasnode_t [| (L.pointer_type (canvasnode_t)) ; (L.pointer_type ptstruct_t) ; (L.pointer_type cstruct_t) ; (L.i32_type context) |] false in
   (*let canvasnode_t = L.struct_type context [| (L.pointer_type (canvasnode)) ; (L.pointer_type ptstruct_t) ; (L.pointer_type cstruct_t) ; (L.i32_type context) |] in*)
@@ -60,7 +57,6 @@ let translate (globals, functions) =
     | A.Array(ty, n) -> array_t (ltype_of_typ ty) n
 
   in
-
 
   (* Create a map of global variables after creating each *)
   let global_vars : L.llvalue StringMap.t =
@@ -132,28 +128,28 @@ let translate (globals, functions) =
     (* Return the value for a variable or formal argument.
        Check local names first, then global names *)
     let lookup n locals = try StringMap.find n locals
-                   with Not_found -> StringMap.find n global_vars 
+                   with Not_found -> StringMap.find n global_vars
     in
-		
-		let mem_to_ind ty = match (L.string_of_lltype ty)  with
-				 "%ptstruct_t*"-> raise(Failure(Some (L.struct_name ty)))
-				(*| None -> raise(Failure("2 things")) *)
-				| _ -> 
-						(*let (Some arr) =L.struct_name ty in*)
-						raise(Failure("wefwefew")) 
 
-						(*let str = Array.fold_left (fun e s -> e^(L.string_of_lltype s)) "" arr in*)
-		(*	cstruct_t  -> List.fold_left (fun m (name, ind) -> StringMap.add name ind m)
-									StringMap.empty [("e1",0); ("cp1",1); ("e2",2); ("cp2",3)]
-			
-			|	ptstruct_t ->  List.fold_left (fun m (name,ind) -> StringMap.add name ind m)
-									StringMap.empty [("x",0); ("y",1)]
-			| canvas_t -> List.fold_left (fun m (name, ind) -> StringMap.add name ind m)
-									StringMap.empty [("x",1); ("y",2)]
-			| _ -> raise(Failure ("type " ^ L.string_of_lltype ty ^ " does not have members"))*)
 
-	
-		in
+
+
+    let mem_to_ind ty = match ty  with
+
+  
+      (*   cstruct  -> List.fold_left (fun m (name, ind) -> StringMap.add name ind m)
+                  StringMap.empty [("e1",0); ("cp1",1); ("e2",2); ("cp2",3)]
+      
+       | ptstruct_t ->  List.fold_left (fun m (name,ind) -> StringMap.add name ind m)
+                  StringMap.empty [("x",0); ("y",1)]
+      | canvas_t -> List.fold_left (fun m (name, ind) -> StringMap.add name ind m)
+                  StringMap.empty [("x",1); ("y",2)]   
+
+      | _ -> raise(Failure ( L.string_of_llvalue (L.size_of ty)))*)
+      _ -> List.fold_left (fun m (name, ind) -> StringMap.add name ind m)
+                  StringMap.empty [("e1",0); ("cp1",1); ("e2",2); ("cp2",3); ("x",0); ("y",1)]
+    in
+
     (* Construct code for an expression; return its value *)
     let rec expr builder locals ((_, e) : sexpr) = match e with
 	      SLiteral i  -> L.const_int i32_t i
@@ -181,21 +177,21 @@ let translate (globals, functions) =
 					let indices = [|L.const_int i32_t 0; i'|] in 
 					let ref = L.build_gep (lookup arr locals) indices arr builder in
 					ignore(L.build_store ex' ref builder); ex'
-			| SField(id,sx) ->
-				let t = L.type_of (lookup id locals) in
-				mem_to_ind t
-				(*raise(Failure(L.string_of_lltype t)) *)
-					(*
-					let getI t n= try StringMap.find n (mem_to_ind t) with Not_found -> raise(Failure(L.string_of_lltype t))in
-					let getNextVal o t n= L.build_struct_gep o (getI t n) n builder in
-					let rec eval out t = function
-							 SField(sid, sf)-> eval (getNextVal out t sid) (L.type_of(getNextVal out t sid)) (snd sf)  
-							|  SId sid -> 
-										let ref = L.build_struct_gep out (getI t sid) sid builder in
-										L.build_load ref sid builder
-							| _ -> raise(Failure("some invalid field type used"))
-					in eval (lookup id locals) (L.type_of (lookup id locals)) (snd sx)
-				*)
+		| SField(id,sx) ->
+          let getI t n= try StringMap.find n (mem_to_ind t) with Not_found -> raise(Failure("blahroig"))in
+          let getNextVal o t n= L.build_struct_gep o (getI t n) n builder in
+          let rec eval out t = function
+               SField(sid, sf)-> eval (getNextVal out t sid) (L.type_of(getNextVal out t sid)) (snd sf)  
+              |  SId sid -> 
+                    let ref = L.build_struct_gep out (getI t sid) sid builder in
+                    L.build_load ref sid builder
+							| SAssign(s,e) -> 
+									let ref = L.build_struct_gep out (getI t s) s builder in
+									let e' = expr builder locals e in
+									ignore(L.build_store e' ref builder); e' 
+              | _ -> raise(Failure("some invalid field type used"))
+          in eval (lookup id locals) (L.type_of (lookup id locals)) (snd sx)
+        
 			| SBinop ((A.Float,_ ) as e1, op, e2) ->
 
 	  let e1' = expr builder locals e1
