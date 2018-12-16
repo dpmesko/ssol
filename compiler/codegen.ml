@@ -38,7 +38,6 @@ let translate (globals, functions) =
   let cstruct_t = L.struct_type context [| ptstruct_t ; ptstruct_t ; ptstruct_t ; ptstruct_t|] in
   let canvasnode_t = L.named_struct_type context "next_canvasnode" in
   let canvasnode_b = L.struct_set_body canvasnode_t [| (L.pointer_type (canvasnode_t)) ; (L.pointer_type ptstruct_t) ; (L.pointer_type cstruct_t) ; (L.i32_type context) |] false in
-  (*let canvasnode_t = L.struct_type context [| (L.pointer_type (canvasnode)) ; (L.pointer_type ptstruct_t) ; (L.pointer_type cstruct_t) ; (L.i32_type context) |] in*)
   let canvas_t   = L.struct_type context [| L.pointer_type canvasnode_t; L.i32_type context ; L.i32_type context |] 
   in
   
@@ -135,17 +134,6 @@ let translate (globals, functions) =
 
 
     let mem_to_ind ty = match ty  with
-
-  
-      (*   cstruct  -> List.fold_left (fun m (name, ind) -> StringMap.add name ind m)
-                  StringMap.empty [("e1",0); ("cp1",1); ("e2",2); ("cp2",3)]
-      
-       | ptstruct_t ->  List.fold_left (fun m (name,ind) -> StringMap.add name ind m)
-                  StringMap.empty [("x",0); ("y",1)]
-      | canvas_t -> List.fold_left (fun m (name, ind) -> StringMap.add name ind m)
-                  StringMap.empty [("x",1); ("y",2)]   
-
-      | _ -> raise(Failure ( L.string_of_llvalue (L.size_of ty)))*)
       _ -> List.fold_left (fun m (name, ind) -> StringMap.add name ind m)
                   StringMap.empty [("e1",0); ("cp1",1); ("e2",2); ("cp2",3); ("x",0); ("y",1)]
     in
