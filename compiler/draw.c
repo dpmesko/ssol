@@ -29,7 +29,6 @@ void draw(struct canvas *canv, char *filename);
 // --------------------------------------------------------
 // FUNCTIONS
 // --------------------------------------------------------
-
 /*
 int main()
 {
@@ -75,7 +74,6 @@ int main()
 
 		draw(&can, "main.svg");
 }*/
-
 void draw(struct canvas *canv, char *filename)
 {
 		svg* psvg;

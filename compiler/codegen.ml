@@ -237,7 +237,11 @@ let translate (globals, functions) =
 			L.build_call draw_func [| flv' ; (expr builder locals ef) |]
 	 			"draw" builder 
     | SConstructor (A.Point, [f1;f2]) -> 
-				L.const_struct context [| (expr builder locals f1) ; (expr builder locals f2) |]
+				(*raise(Failure(L.string_of_llvalue (expr builder locals f1)))*)
+				let f1' = expr builder locals f1 
+				and f2' = expr builder locals f2 in
+				raise(Failure(L.string_of_llvalue f1' ^"   weewfw     "^L.string_of_llvalue f2'))
+				(*L.const_struct context [| (expr builder locals f1) ; (expr builder locals f2) |] *)
     | SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> 
 				L.const_struct context [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p4) |]  
     | SConstructor (A.Canvas, [x ; y]) ->
