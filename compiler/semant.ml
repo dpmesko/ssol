@@ -148,11 +148,11 @@ let check (globals, functions) =
       | Noexpr      -> (Void, SNoexpr)
       | Id s        -> (type_of_identifier locals s, SId s)
       | Assign(var, e) as ex -> 
-          let lt = type_of_identifier locals var
+           let lt = type_of_identifier locals var
           and (rt, e') = expr locals e in
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex ^ " for identifier " ^ var
-          in (check_assign lt rt err, SAssign(var, (rt, e')))
+          in (check_assign lt rt err, SAssign(var, (rt, e'))) 
 	  	| Access(arr, ind) ->
 					let arrtyp = type_of_identifier locals arr 
 					and (ityp, _) as ind' = expr locals ind in
@@ -174,7 +174,19 @@ let check (globals, functions) =
 			| Field(obj, mem)  -> 
 					let ty = type_of_identifier locals obj in
 					let memmap = member_map_of_type ty in
-					let smem = expr memmap mem in
+					let smem = match mem with
+              Assign(v,e) as ex-> 
+                   let ty = type_of_identifier memmap v in
+                      (match e with
+                         Fliteral f -> 
+                            let lt = StringMap.find v memmap
+                            and (rt, e') = expr locals e in
+                            let err = "illegal assigoierfoierjfnment " ^ string_of_typ lt ^ " = " ^ 
+                              string_of_typ rt ^ " in " ^ string_of_expr ex ^ " for identifier Field." ^ v
+                            in (check_assign lt rt err, SAssign(v, (rt, e')))
+                        | Id s ->  (ty,SAssign(v,(ty, SId s)) ) ) 
+              | _ -> expr memmap mem 
+            in
 					(fst smem, SField(obj, smem))
 
 					(* TODO: Need to check type of expr? If so, what is acceptable?
