@@ -35,11 +35,10 @@ let translate (globals, functions) =
   and array_t 	 = L.array_type in 
   let float_t    = L.double_type context in
   let ptstruct_t = L.struct_type context [| float_t ; float_t |] in 
-  let cstruct_t = L.struct_type context [| ptstruct_t ; ptstruct_t ; ptstruct_t ; ptstruct_t|] in
+  let cstruct_t  = L.struct_type context [| ptstruct_t ; ptstruct_t ; ptstruct_t ; ptstruct_t|] in
   let canvasnode_t = L.named_struct_type context "next_canvasnode" in
-  let canvasnode_b = L.struct_set_body canvasnode_t [| (L.pointer_type (canvasnode_t)) ; (L.pointer_type ptstruct_t) ; (L.pointer_type cstruct_t) ; (L.i32_type context) |] false in
-  (*let canvasnode_t = L.struct_type context [| (L.pointer_type (canvasnode)) ; (L.pointer_type ptstruct_t) ; (L.pointer_type cstruct_t) ; (L.i32_type context) |] in*)
-  let canvas_t   = L.struct_type context [| L.pointer_type canvasnode_t; L.i32_type context ; L.i32_type context |] 
+  let canvasnode_b = L.struct_set_body canvasnode_t [| L.pointer_type (canvasnode_t) ; (L.pointer_type cstruct_t) |] false in
+  let canvas_t   = L.struct_type context [| L.pointer_type canvasnode_t ; float_t ; float_t |] 
   in
   
   (* Return the LLVM type for a SSOL type *)
@@ -80,7 +79,7 @@ let translate (globals, functions) =
   let sprint_func =
       L.declare_function "sprintf" sprintf_t the_module in
 	let draw_t : L.lltype = 
- 			L.function_type i32_t [| str_t ; str_t |] in
+ 			L.function_type i32_t [| L.pointer_type canvas_t ; str_t |] in
 	let draw_func : L.llvalue =
 			L.declare_function "draw" draw_t the_module in
 
@@ -202,15 +201,13 @@ let translate (globals, functions) =
     | SCall ("printf", [e]) -> 
 	  	L.build_call printf_func [| float_format_str ; (expr builder locals e) |]
 	    	"printf" builder
-	| SCall ("draw", [e; ef]) ->
+	| SCall ("draw", [e;ef]) ->
 			L.build_call draw_func [| (expr builder locals e) ; (expr builder locals ef) |]
 	 			"draw" builder
-    | SConstructor (A.Point, [f1;f2]) ->
-                L.const_struct context [| (expr builder locals f1) ; (expr builder locals f2) |]
+    | SConstructor (A.Point, [f1;f2]) -> 
+				L.const_struct context [| (expr builder locals f1) ; (expr builder locals f2) |]
     | SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> (*w point constructors*)
                 L.const_struct context [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p3) |]  
-    (*| SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> (*w point ids*)
-                    L.const_struct context [|L.build_load (lookup p1 locals) p1 builder ; L.build_load (lookup p2 locals) p2 builder ; L.build_load (lookup p3 locals) p3 builder ; L.build_load (lookup p4 locals) p4 builder |]*)
     | SConstructor (A.Canvas, [x ; y]) ->
                 L.const_struct context [| (L.const_pointer_null canvasnode_t) ; (expr builder locals x); (expr builder locals y) |]
     (*TODO: when we build_struct_gep from pipe, we will need to do a build_store to fill the null canvasnode_t pointer*)
@@ -249,7 +246,7 @@ let translate (globals, functions) =
 			(builder, locals)
       | SExpr e -> ignore(expr builder locals e); (builder, locals)
       | SReturn e -> ignore(match fdecl.styp with
-                              (* Special "return nothing" instr *)
+                             (* Special "return nothing" instr *)
                               A.Void -> L.build_ret_void builder 
                               (* Build return statement *)
                             | _ -> L.build_ret (expr builder locals e) builder );

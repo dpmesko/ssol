@@ -4,7 +4,7 @@
 #include<math.h>
 
 // --------------------------------------------------------
-// STRUCT svg
+// STRUCT definitions
 // --------------------------------------------------------
 typedef struct svg
 {
@@ -13,6 +13,36 @@ typedef struct svg
     int width;
     bool finalized;
 } svg;
+
+
+struct point
+{
+		double x;
+		double y;
+};
+
+
+struct curv
+{
+		struct point ep1;
+		struct point ep2;
+		struct point cp1;
+		struct point cp2;
+};
+
+
+struct canvas_node
+{
+		struct canvas_node *next;
+		struct curve *ct;
+};
+
+struct canvas
+{
+		struct canvas_node *first;
+		int x;
+		int y;
+};
 
 // --------------------------------------------------------
 // FUNCTION PROTOTYPES

@@ -1,0 +1,6 @@
+int main()
+{
+	Canvas can;
+	can = Canvas(6.0, 5.0);
+	return 0;
+}
