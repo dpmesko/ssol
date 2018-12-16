@@ -45,7 +45,7 @@ let check (globals, functions) =
 			                         ("printf", [Float]);
 			                         ("printbig", [Int]);
 						 									 ("sprint", [String]);
-	 														 ("draw", [String; String])]
+	 														 ("draw", [Canvas; String])]
   
   in
 
@@ -216,9 +216,8 @@ let check (globals, functions) =
                      when same && (t1 = Int || t1 = Float) -> Bool
           | And | Or when same && t1 = Bool -> Bool
 					| Mod when same && t1 = Int -> Int
-					| Pipe when (t1 = Point || t1 = Curve) && 
-							(t2 = Point || t2 = Curve) -> Canvas
-					| Pipend when t1 = Canvas && (t2 = Point || t2 = Curve)	 -> Canvas
+					| Pipe when same && t1 = Curve -> Canvas
+					| Pipend when t1 = Canvas && t2 = Curve -> Canvas
           | _ -> raise (
 	      Failure ("illegal binary operator " ^
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
@@ -240,6 +239,7 @@ let check (globals, functions) =
           in (fd.typ, SCall(fname, args'))
 			| Constructor(ty, exl) -> 
 					let sxl = List.map (expr locals) exl in
+					(* NEED TO CHECK ARGS! - convert to Call() ?*)
 					match ty with
 							Point -> (ty, SConstructor(ty, sxl))
 						| Curve -> (ty, SConstructor(ty, sxl))
