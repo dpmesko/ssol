@@ -38,7 +38,7 @@ let translate (globals, functions) =
   let cstruct_t  = L.struct_type context [| ptstruct_t ; ptstruct_t ; ptstruct_t ; ptstruct_t|] in
   let canvasnode_t = L.named_struct_type context "next_canvasnode" in
   let canvasnode_b = L.struct_set_body canvasnode_t [| L.pointer_type (canvasnode_t) ; (L.pointer_type cstruct_t) |] false in
-  let canvas_t   = L.struct_type context [| L.pointer_type canvasnode_t ; float_t ; float_t |] 
+  let canvas_t   = L.struct_type context [| float_t ; float_t ; L.pointer_type canvasnode_t |] 
   in
   
   (* Return the LLVM type for a SSOL type *)
@@ -201,16 +201,17 @@ let translate (globals, functions) =
     | SCall ("printf", [e]) -> 
 	  	L.build_call printf_func [| float_format_str ; (expr builder locals e) |]
 	    	"printf" builder
-	| SCall ("draw", [f;ef]) ->
-			let f' = expr builder locals f in
-			L.build_call draw_func [| f' ; (expr builder locals ef) |]
-	 			"draw" builder
+		| SCall ("draw", [f;ef]) ->
+			let flv = expr builder locals f in
+			let flv' = L.build_struct_gep flv 0 "canvas_p" builder in 
+			L.build_call draw_func [| flv' ; (expr builder locals ef) |]
+	 			"draw" builder 
     | SConstructor (A.Point, [f1;f2]) -> 
 				L.const_struct context [| (expr builder locals f1) ; (expr builder locals f2) |]
     | SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> 
 				L.const_struct context [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p4) |]  
     | SConstructor (A.Canvas, [x ; y]) ->
-        L.const_struct context [| (L.const_pointer_null canvasnode_t) ; (expr builder locals x); (expr builder locals y) |]
+        L.const_struct context [| (expr builder locals x); (expr builder locals y) ; (L.const_pointer_null canvasnode_t)  |]
     (*TODO: when we build_struct_gep from pipe, we will need to do a build_store to fill the null canvasnode_t pointer*)
     in
     

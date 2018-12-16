@@ -39,9 +39,9 @@ struct canvas_node
 
 struct canvas
 {
-		struct canvas_node *first;
 		int x;
 		int y;
+		struct canvas_node *first;
 };
 
 // --------------------------------------------------------
