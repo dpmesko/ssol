@@ -22,7 +22,7 @@ struct point
 };
 
 
-struct curv
+struct curve
 {
 		struct point ep1;
 		struct point ep2;
@@ -39,9 +39,9 @@ struct canvas_node
 
 struct canvas
 {
-		struct canvas_node *first;
 		int x;
 		int y;
+		struct canvas_node *first;
 };
 
 // --------------------------------------------------------
@@ -52,6 +52,8 @@ void svg_finalize(svg* psvg);
 void svg_print(svg* psvg);
 void svg_save(svg* psvg, char* filepath);
 void svg_free(svg* psvg);
+void svg_bezier(svg *psvg, int x1, int y1, int x2, int y2, int cx1, int cy1,
+		int cx2, int cy2);
 void svg_circle(svg* psvg, char* stroke, int strokewidth, char* fill, int r, int cx, int cy);
 void svg_line(svg* psvg, char* stroke, int strokewidth, int x1, int y1, int x2, int y2);
 void svg_rectangle(svg* psvg, int width, int height, int x, int y, char* fill, char* stroke, int strokewidth, int radiusx, int radiusy);
