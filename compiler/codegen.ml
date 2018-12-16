@@ -36,7 +36,7 @@ let translate (globals, functions) =
   let float_t    = L.double_type context in
   let ptstruct_t = L.struct_type context [| float_t ; float_t |] in 
   let cstruct_t  = L.struct_type context [| ptstruct_t ; ptstruct_t ; ptstruct_t ; ptstruct_t|] in
-  let canvasnode_t = L.named_struct_type context "next_canvasnode" in
+  let canvasnode_t = L.named_struct_type context "canvasnode" in
   let canvasnode_b = L.struct_set_body canvasnode_t [| L.pointer_type (canvasnode_t) ; (L.pointer_type cstruct_t) |] false in
   let canvas_t   = L.struct_type context [| L.pointer_type canvasnode_t ; float_t ; float_t |] 
   in
@@ -186,6 +186,23 @@ let translate (globals, functions) =
 	  | A.Greater -> L.build_icmp L.Icmp.Sgt
 	  | A.Geq     -> L.build_icmp L.Icmp.Sge
 	  ) e1' e2' "tmp" builder
+      | SBinop(A.Canvas as can, op, crv) ->
+          let can' = expr builder locals can
+          and crv' = expr builder locals crv in
+          (match op with
+           A.Pipend   -> 
+                   (*construct new node*)
+                   let newnode = L.build_alloca canvasnode_t "newnode" builder in
+                   let next_node_ptr = L.build_struct_gep newnode 0 "next_curve" builder in
+                   ignore (L.build_store (L.const_pointer_null canvasnode_t) next_node_ptr builder)
+                   let curve_ptr = L.build_struct_gep newnode 1 "curve" builder in
+                   ignore (L.build_store crv' curve_ptr builder)
+                   
+                   let headptr = L.param can' 0 in
+                   ignore (L.build_store headptr next_node_ptr builder) (*have new node point to the thing canvas points to*)
+                   ignore (L.build_store newnode headptr builder) (*have canvas' headptr point to new node*)
+          ) can' crv' "pipend" builder
+                
       | SUnop(op, ((t, _) as e)) ->
           let e' = expr builder locals e in
 	  (match op with
@@ -210,7 +227,8 @@ let translate (globals, functions) =
                 L.const_struct context [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p3) |]  
     | SConstructor (A.Canvas, [x ; y]) ->
                 L.const_struct context [| (L.const_pointer_null canvasnode_t) ; (expr builder locals x); (expr builder locals y) |]
-    (*TODO: when we build_struct_gep from pipe, we will need to do a build_store to fill the null canvasnode_t pointer*)
+    
+     (*TODO: when we build_struct_gep from pipe, we will need to do a build_store to fill the null canvasnode_t pointer*)
     in
     
     (* LLVM insists each basic block end with exactly one "terminator" 
