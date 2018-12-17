@@ -91,7 +91,7 @@ let translate (globals, functions) =
 	let ccons_func : L.llvalue = 
 			L.declare_function "Curve" ccons_t the_module in
 	let canvascons_t : L.lltype =
-			L.function_type canvas_t [|float_t; float_t; L.pointer_type canvasnode_t|] in
+			L.function_type canvas_t [|float_t; float_t; (* L.pointer_type canvasnode_t *)|] in
 	let canvascons_func : L.llvalue  = 
 			L.declare_function "Canvas" canvascons_t the_module in 
 
@@ -282,7 +282,8 @@ let translate (globals, functions) =
 				 
     | SConstructor (A.Canvas, [x ; y]) ->
 
-				L.build_call canvascons_func [| (expr builder locals x); (expr builder locals y) ; (L.const_null (L.pointer_type canvasnode_t)) |] "Canvas" builder
+				L.build_call canvascons_func [| (expr builder locals x); (expr builder locals y) (*(L.const_null (L.pointer_type canvasnode_t))*) |] "Canvas" builder
+
 
     (*TODO: when we build_struct_gep from pipe, we will need to do a build_store to fill the null canvasnode_t pointer*)
     in
