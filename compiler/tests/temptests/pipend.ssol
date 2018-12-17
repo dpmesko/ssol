@@ -1,0 +1,12 @@
+int main(){
+	Point p = Point(10.0,10.0);
+	Canvas c = Canvas(100.0,100.0);
+	Curve crv = Curve(p,p,p,p);
+	Curve c2 = crv;
+	Curve c3 = crv;
+	c |=	crv;
+	c |= c2;
+	c|= c3;
+	draw(c,"tewt.svg");
+	return 0;
+}

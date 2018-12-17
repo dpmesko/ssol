@@ -126,10 +126,11 @@ int draw(struct canvas canv, char *filename)
 void read_canvas(struct canvas_node *node, svg *psvg)
 {	
 		// Walk the canvas node list, render each curve element
+		printf("read_cavas");
 
 		if (node == NULL)
 				return;
-		
+	printf("node is not null");	
 		struct canvas_node *next = node->next;
 		struct curve *ct = node->ct;
 
