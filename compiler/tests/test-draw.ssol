@@ -1,6 +1,7 @@
 int main()
 {
 		Canvas can = Canvas(5.2, 3.2);
-		//draw(can, "hiya.svg");
+
+		draw(can, "hiya.svg");
 		return 0;
 }
