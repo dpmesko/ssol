@@ -211,27 +211,28 @@ let translate (globals, functions) =
 	      raise (Failure "internal error: semant should have rejected and/or on float")
 	  ) e1' e2' "tmp" builder
       | SBinop((A.Canvas,_) as can, op, crv) ->
-          let can' = expr builder locals can
-          and crv' = expr builder locals crv in
+          let (can',can_s) = (match (snd can) with
+							SId s -> (expr builder locals can, s)
+							|_-> raise(Failure "some is wrong")) 
+          and (crv',crv_s) = (match (snd crv) with
+							SId s -> (expr builder locals crv,s)
+							|_->raise(Failure "something is wrong")) in
+					(*expr builder locals crv in*)
           (match op with
-           A.Pipend ->  
-                   (*construct new node, assign null to next pointer*)
+           A.Pipend   -> 
+                   (*construct new node*)
                    let newnode = L.build_alloca canvasnode_t "newnode" builder in
-                   let next_node_ptr = L.build_struct_gep newnode 0 "next_node_ptr" builder in
-                   ignore(L.build_store (L.const_null (L.pointer_type canvasnode_t)) next_node_ptr builder); 
-								
-									 (* allocate curve, keep pointer *)
-									 let crv_ptr = L.build_alloca cstruct_t "crv_ptr" builder in
-									 ignore(L.build_store crv' crv_ptr builder);
-
-									 (* put curve pointer in the node's crv_ptr field *)
-                   let this_curve = L.build_struct_gep newnode 1 "curveptr" builder in 
-                   (L.build_store crv_ptr this_curve builder);
-									
-                   let headptr = L.param can' 3 in
-                   L.build_store headptr next_node_ptr builder; (*have new node point to the thing canvas points to*) (* 
-                   L.build_store newnode headptr builder; (*have canvas' headptr point to new node*)      *)  ) 
-          
+                   let next_node_ptr = L.build_struct_gep newnode 0 "new_curve" builder in
+                   L.build_store (L.const_null (L.pointer_type canvasnode_t)) next_node_ptr builder;
+                   let curve_ptr = L.build_struct_gep newnode 1 "curve" builder in
+									let crvlv = lookup crv_s locals in
+									let res = L.build_store crvlv curve_ptr builder in
+									let canlv = lookup can_s locals in
+									let headptr = L.build_struct_gep canlv 2 "head" builder in
+									let oldhead = L.build_load headptr "oldptr" builder in
+									L.build_store oldhead next_node_ptr builder;
+								  L.build_store newnode headptr builder; canlv
+          ) 
       | SBinop (e1, op, e2) ->
 	  let e1' = expr builder locals e1
 	  and e2' = expr builder locals e2 in
