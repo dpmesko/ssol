@@ -37,7 +37,7 @@ struct __attribute__((__packed__)) canvas_node
 		struct curve *ct;
 };
 
-struct /* __attribute__((__packed__)) */ canvas
+struct __attribute__((__packed__)) canvas
 {
 		float x;
 		float y;

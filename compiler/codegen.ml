@@ -38,7 +38,7 @@ let translate (globals, functions) =
   let cstruct_t  = L.struct_type context [| ptstruct_t ; ptstruct_t ; ptstruct_t ; ptstruct_t|] in
   let canvasnode_t = L.named_struct_type context "canvasnode" in
   let canvasnode_b = L.struct_set_body canvasnode_t [| L.pointer_type (canvasnode_t) ; (L.pointer_type cstruct_t) |] false in
-  let canvas_t   = L.struct_type context [| float_t ; float_t ; L.pointer_type canvasnode_t |] 
+	let canvas_t = L.struct_type context [| float_t ; float_t ; L.pointer_type canvasnode_t |]  
   in
   
   (* Return the LLVM type for a SSOL type *)
