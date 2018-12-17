@@ -15,14 +15,14 @@ typedef struct svg
 } svg;
 
 
-struct point
+struct __attribute__((__packed__)) point
 {
 		double x;
 		double y;
 };
 
 
-struct curve
+struct __attribute__((__packed__)) curve
 {
 		struct point ep1;
 		struct point ep2;
@@ -31,16 +31,16 @@ struct curve
 };
 
 
-struct canvas_node
+struct __attribute__((__packed__)) canvas_node
 {
 		struct canvas_node *next;
 		struct curve *ct;
 };
 
-struct canvas
+struct __attribute__((__packed__)) canvas
 {
-		int x;
-		int y;
+		double x;
+		double y;
 		struct canvas_node *first;
 };
 

@@ -79,9 +79,21 @@ let translate (globals, functions) =
   let sprint_func =
       L.declare_function "sprintf" sprintf_t the_module in*)
 	let draw_t : L.lltype = 
- 			L.function_type i32_t [| L.pointer_type canvas_t ; str_t |] in
+ 			L.function_type i32_t [| canvas_t ; str_t |] in
 	let draw_func : L.llvalue =
 			L.declare_function "draw" draw_t the_module in
+	let ptcons_t : L.lltype = 
+			L.function_type ptstruct_t [|float_t; float_t|] in
+	let ptcons_func : L.llvalue = 
+			L.declare_function "Point" ptcons_t the_module in
+	let ccons_t : L.lltype = 
+			L.function_type cstruct_t [|ptstruct_t;ptstruct_t ;ptstruct_t;ptstruct_t |] in
+	let ccons_func : L.llvalue = 
+			L.declare_function "Curve" ccons_t the_module in
+	let canvascons_t : L.lltype =
+			L.function_type canvas_t [|float_t; float_t; L.pointer_type canvasnode_t|] in
+	let canvascons_func : L.llvalue  = 
+			L.declare_function "Canvas" canvascons_t the_module in 
 
   (* Define each function (arguments and return type) so we can 
      call it even before we've created its body *)
@@ -133,7 +145,7 @@ let translate (globals, functions) =
 
     let mem_to_ind ty = match ty  with
       _ -> List.fold_left (fun m (name, ind) -> StringMap.add name ind m)
-                  StringMap.empty [("e1",0); ("cp1",1); ("e2",2); ("cp2",3); ("x",0); ("y",1)]
+                  StringMap.empty [("ep1",0); ("ep2",1); ("cp1",2); ("cp2",3); ("x",0); ("y",1)]
     in
 
     (* Construct code for an expression; return its value *)
@@ -165,8 +177,8 @@ let translate (globals, functions) =
 					ignore(L.build_store ex' ref builder); ex'
 		| SField(id,sx) ->
 
-          let getI t n= try StringMap.find n (mem_to_ind t) with Not_found -> raise(Failure("blahroig"))in
-          let getNextVal o t n= L.build_struct_gep o (getI t n) n builder in
+          let getI t n = try StringMap.find n (mem_to_ind t) with Not_found -> raise(Failure("blahroig"))in
+          let getNextVal o t n = L.build_struct_gep o (getI t n) n builder in
           let rec eval out t = function
                SField(sid, sf)-> eval (getNextVal out t sid) (L.type_of(getNextVal out t sid)) (snd sf)  
               |  SId sid -> 
@@ -249,15 +261,23 @@ let translate (globals, functions) =
 	    	"printf" builder
 		| SCall ("draw", [f;ef]) ->
 			let flv = expr builder locals f in
-			let flv' = L.build_struct_gep flv 0 "canvas_p" builder in 
-			L.build_call draw_func [| flv' ; (expr builder locals ef) |]
-	 			"draw" builder 
+			L.build_call draw_func [| flv ; (expr builder locals ef) |]
+	 			"draw" builder
     | SConstructor (A.Point, [f1;f2]) -> 
-				L.const_struct context [| (expr builder locals f1) ; (expr builder locals f2) |]
-    | SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> 
-				L.const_struct context [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p4) |]  
+				let f1' = expr builder locals f1
+				and f2' = expr builder locals f2 in
+				L.build_call ptcons_func [|f1'; f2'|] "Point" builder 
+	  
+		| SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> 
+				(*L.const_struct context [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p4) |]  *)
+				
+				L.build_call ccons_func [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p4) |] "Curve" builder
+				 
     | SConstructor (A.Canvas, [x ; y]) ->
-        L.const_struct context [| (expr builder locals x); (expr builder locals y) ; (L.const_null (L.pointer_type canvasnode_t)) |]
+       (* L.const_struct context [| (expr builder locals x); (expr builder locals y) ; (L.const_null (L.pointer_type canvasnode_t)) |] *)
+
+				L.build_call canvascons_func [| (expr builder locals x); (expr builder locals y) ; (L.const_null (L.pointer_type canvasnode_t)) |] "Canvas" builder
+
     (*TODO: when we build_struct_gep from pipe, we will need to do a build_store to fill the null canvasnode_t pointer*)
     in
     
