@@ -3,11 +3,8 @@
 #include<stdio.h>
 #include<string.h>
 #include<math.h>
+
 #include"svg.h"
-
-
-
-// STOLEN FROM http://www.code-in-c.com/writing-svg-library-c/
 
 
 // --------------------------------------------------------
@@ -45,6 +42,9 @@ static void appendnumbertosvg(svg* psvg, int n)
 svg* svg_create(int width, int height)
 {
     svg* psvg = malloc(sizeof(svg));
+	
+		char* style = "<style type='text/css'><![CDATA[\n.Curve { "
+			"fill:none; stroke:black; stroke-width:5 }\n]]></style>\n";
 
     if(psvg != NULL)
     {
@@ -59,6 +59,7 @@ svg* svg_create(int width, int height)
         appendstringtosvg(psvg, "px' height='");
         appendnumbertosvg(psvg, height);
         appendstringtosvg(psvg, "px' xmlns='http://www.w3.org/2000/svg' version='1.1' xmlns:xlink='http://www.w3.org/1999/xlink'>\n");
+				appendstringtosvg(psvg, style);
 
         return psvg;
     }
@@ -77,6 +78,20 @@ void svg_finalize(svg* psvg)
 
     psvg->finalized = true;
 }
+
+//----------------------------------------------------------------
+// FUNCTION svg_bezier
+//----------------------------------------------------------------
+void svg_bezier(svg *psvg, int x1, int y1, int x2, int y2, int cx1, int cy1,
+		int cx2, int cy2)
+{
+		char path[500];
+		snprintf(path, 500, "<path class='Curve' d='M%d,%d C%d,%d %d,%d %d,%d' />",
+			x1, y1, x2, y2, cx1, cy1, cx2, cy2);
+			
+		appendstringtosvg(psvg, path);
+}
+
 
 //----------------------------------------------------------------
 // FUNCTION svg_rectangle
@@ -115,6 +130,25 @@ void svg_text(svg* psvg, int x, int y, char* fontfamily, int fontsize, char* fil
 		appendstringtosvg(psvg, buf);
 }
 
+//--------------------------------------------------------
+// FUNCTION svg-line
+//-------------------------------------------------------
+void svg_line(svg* psvg, char* stroke, int strokewidth, int x1, int y1, int x2, int y2)
+{
+    appendstringtosvg(psvg, "    <line stroke='");
+    appendstringtosvg(psvg, stroke);
+    appendstringtosvg(psvg, "' stroke-width='");
+    appendnumbertosvg(psvg, strokewidth);
+    appendstringtosvg(psvg, "px' y2='");
+    appendnumbertosvg(psvg, y2);
+    appendstringtosvg(psvg, "' x2='");
+    appendnumbertosvg(psvg, x2);
+    appendstringtosvg(psvg, "' y1='");
+    appendnumbertosvg(psvg, y1);
+    appendstringtosvg(psvg, "' x1='");
+    appendnumbertosvg(psvg, x1);
+    appendstringtosvg(psvg, "' />\n");
+}
 
 // --------------------------------------------------------
 // FUNCTION svg_save

@@ -1,5 +1,5 @@
 int main() {
   Canvas can;
-  can = Canvas (5, 6);
+  can = Canvas (5.0, 6.0);
   return 0;
 }
