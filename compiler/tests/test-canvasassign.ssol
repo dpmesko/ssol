@@ -1,5 +1,7 @@
 int main() {
   Canvas can;
   can = Canvas (5.0, 6.0);
+	printf(can.x);
+	printf(can.y);
   return 0;
 }
