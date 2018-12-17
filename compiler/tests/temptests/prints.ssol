@@ -1,0 +1,8 @@
+int main(){
+	String str = "a stringi.svg";
+	Canvas c = Canvas(1.0,1.0);
+	print("fwefwef");
+	int i = 0;
+	print(i);
+	return 0;
+}

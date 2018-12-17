@@ -40,7 +40,8 @@ let check (globals, functions) =
       fname = name; 
       formals = List.map (fun elem -> (elem, "x")) tylst;
       (* locals = []; *) body = [] } map
-    in List.fold_left add_bind StringMap.empty [ ("print", [Int]);
+    in List.fold_left add_bind StringMap.empty [ 
+															 ("print", [String]);
 			                         ("printb", [Bool]);
 			                         ("printf", [Float]);
 			                         ("printbig", [Int]);
@@ -181,7 +182,7 @@ let check (globals, functions) =
                          Fliteral f -> 
                             let lt = StringMap.find v memmap
                             and (rt, e') = expr locals e in
-                            let err = "illegal assigoierfoierjfnment " ^ string_of_typ lt ^ " = " ^ 
+                            let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
                               string_of_typ rt ^ " in " ^ string_of_expr ex ^ " for identifier Field." ^ v
                             in (check_assign lt rt err, SAssign(v, (rt, e')))
                         | Id s ->  (ty,SAssign(v,(ty, SId s)) ) ) 
@@ -232,8 +233,16 @@ let check (globals, functions) =
             raise (Failure ("expecting " ^ string_of_int param_length ^ 
                             " arguments in " ^ string_of_expr call))
           else let check_call (ft, _) e = 
-            let (et, e') = expr locals e in 
-            let err = "illegal argument found " ^ string_of_typ et ^
+						let ce = (match fname with
+											"print" -> (match e with
+																	 Id s -> Id (string_of_expr e)
+																	| _ -> StringLit (string_of_expr e))
+											| _-> e) in 
+            let (et, e') = expr locals ce in
+						let ft = (match (e',fname) with 
+												 (SId s, "print") -> et
+												 | _ -> ft) in
+						let err = "illegal argument found " ^ string_of_typ et ^
               " expected " ^ string_of_typ ft ^ " in " ^ string_of_expr e
             in (check_assign ft et err, e')
           in 

@@ -75,9 +75,6 @@ let translate (globals, functions) =
       L.function_type i32_t [| i32_t |] in
   let printbig_func : L.llvalue =
       L.declare_function "printbig" printbig_t the_module in
-  (*let sprintf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t ; L.pointer_type i8_t |] in
-  let sprint_func =
-      L.declare_function "sprintf" sprintf_t the_module in*)
 	let draw_t : L.lltype = 
  			L.function_type i32_t [| canvas_t ; str_t |] in
 	let draw_func : L.llvalue =
@@ -258,7 +255,13 @@ let translate (globals, functions) =
 	    A.Neg when t = A.Float -> L.build_fneg 
 	  | A.Neg                  -> L.build_neg
     | A.Not                  -> L.build_not) e' "tmp" builder
-		| SCall ("print", [e]) | SCall ("printb", [e]) ->
+		| SCall ("print", [e]) ->
+			let v = (match e with
+							  (_,SId s) -> expr builder locals (String, SStringLit ("Identifier: "^s))
+								| _ -> expr builder locals e )in 
+			L.build_call printf_func [| str_format_str; v |]
+				"printf" builder 
+		| SCall ("printb", [e]) ->
 	  	L.build_call printf_func [| int_format_str ; (expr builder locals e) |]
 	    	"printf" builder
     | SCall ("printbig", [e]) ->
