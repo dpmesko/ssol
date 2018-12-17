@@ -79,7 +79,7 @@ let translate (globals, functions) =
   let sprint_func =
       L.declare_function "sprintf" sprintf_t the_module in*)
 	let draw_t : L.lltype = 
- 			L.function_type i32_t [| L.pointer_type canvas_t ; str_t |] in
+ 			L.function_type i32_t [| canvas_t ; str_t |] in
 	let draw_func : L.llvalue =
 			L.declare_function "draw" draw_t the_module in
 
@@ -165,8 +165,8 @@ let translate (globals, functions) =
 					ignore(L.build_store ex' ref builder); ex'
 		| SField(id,sx) ->
 
-          let getI t n= try StringMap.find n (mem_to_ind t) with Not_found -> raise(Failure("blahroig"))in
-          let getNextVal o t n= L.build_struct_gep o (getI t n) n builder in
+          let getI t n = try StringMap.find n (mem_to_ind t) with Not_found -> raise(Failure("blahroig"))in
+          let getNextVal o t n = L.build_struct_gep o (getI t n) n builder in
           let rec eval out t = function
                SField(sid, sf)-> eval (getNextVal out t sid) (L.type_of(getNextVal out t sid)) (snd sf)  
               |  SId sid -> 
@@ -233,9 +233,8 @@ let translate (globals, functions) =
 	    	"printf" builder
 		| SCall ("draw", [f;ef]) ->
 			let flv = expr builder locals f in
-			let flv' = L.build_struct_gep flv 0 "canvas_p" builder in 
-			L.build_call draw_func [| flv' ; (expr builder locals ef) |]
-	 			"draw" builder 
+			L.build_call draw_func [| flv ; (expr builder locals ef) |]
+	 			"draw" builder
     | SConstructor (A.Point, [f1;f2]) -> 
 				L.const_struct context [| (expr builder locals f1) ; (expr builder locals f2) |]
     | SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> 

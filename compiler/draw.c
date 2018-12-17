@@ -24,7 +24,7 @@
 // FUNCTION PROTOTYPES
 //--------------------------------------------------------
 void read_canvas(struct canvas_node *node, svg *psvg);
-void draw(struct canvas *canv, char *filename);
+int draw(struct canvas canv, char *filename);
 
 // --------------------------------------------------------
 // FUNCTIONS
@@ -76,29 +76,33 @@ int main()
 		draw(&can, "main.svg");
 }*/
 
-void draw(struct canvas *canv, char *filename)
+int draw(struct canvas canv, char *filename)
 {
 		svg* psvg;
-		psvg = svg_create(canv->x, canv->y);
+		psvg = svg_create(canv.x, canv.y);
 
 		if (psvg == NULL) {
 				fprintf(stderr, "could not store SVG meta data, malloc returned null");
 				exit(1);
 		}
 		else{
-			read_canvas(canv->first, psvg);
+			read_canvas(canv.first, psvg);
 			
 			svg_finalize(psvg);
 			svg_save(psvg, filename);
 			svg_free(psvg);
 		}
+
+		return 0;
 }
 
 
 void read_canvas(struct canvas_node *node, svg *psvg)
 {	
-		// Check what the canvas node points to and then
-		//  call the appropriate rendering function 
+		// Walk the canvas node list, render each curve element
+
+		if (node == NULL)
+				return;
 		
 		struct canvas_node *next = node->next;
 		struct curve *ct = node->ct;
@@ -114,9 +118,7 @@ void read_canvas(struct canvas_node *node, svg *psvg)
 
 		svg_bezier(psvg, ep1x, ep1y, ep2x, ep2y, cp1x, cp1y, cp2x, cp2y); 
 		
-		// the recursive call. Should be prefix or postfix?
-		if (next != NULL)
-			read_canvas(next, psvg);
+		read_canvas(next, psvg);
 
 }
 
