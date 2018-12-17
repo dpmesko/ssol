@@ -275,17 +275,11 @@ let translate (globals, functions) =
 				let f1' = expr builder locals f1
 				and f2' = expr builder locals f2 in
 				L.build_call ptcons_func [|f1'; f2'|] "Point" builder 
-	  
 		| SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> 
-				
 				L.build_call ccons_func [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p4) |] "Curve" builder
-				 
     | SConstructor (A.Canvas, [x ; y]) ->
+				L.build_call canvascons_func [| (expr builder locals x); (expr builder locals y) |] "Canvas" builder
 
-				L.build_call canvascons_func [| (expr builder locals x); (expr builder locals y) (*(L.const_null (L.pointer_type canvasnode_t))*) |] "Canvas" builder
-
-
-    (*TODO: when we build_struct_gep from pipe, we will need to do a build_store to fill the null canvasnode_t pointer*)
     in
     
     (* LLVM insists each basic block end with exactly one "terminator" 

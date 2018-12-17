@@ -121,7 +121,6 @@ expr:
   | expr GEQ    expr { Binop($1, Geq,   $3)   }
   | expr AND    expr { Binop($1, And,   $3)   }
   | expr OR     expr { Binop($1, Or,    $3)   }
-  | expr PIPE   expr { Binop($1, Pipe,  $3)   }
   | expr PIPEND expr { Binop($1, Pipend, $3)  }
   | ID   DOT    expr   { Field($1, $3)          } 
   | MINUS expr %prec NOT { Unop(Neg, $2)      }

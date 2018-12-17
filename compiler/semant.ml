@@ -218,7 +218,6 @@ let check (globals, functions) =
                      when same && (t1 = Int || t1 = Float) -> Bool
           | And | Or when same && t1 = Bool -> Bool
 					| Mod when same && t1 = Int -> Int
-					| Pipe when same && t1 = Curve -> Canvas
 					| Pipend when t1 = Canvas && t2 = Curve -> Canvas
           | _ -> raise (
 	      Failure ("illegal binary operator " ^
