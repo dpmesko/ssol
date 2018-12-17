@@ -92,7 +92,29 @@ void draw(struct canvas *canv, char *filename)
 		}
 }
 
+struct point Point(double x, double y)
+{
+		struct point pt;
+		pt.x = x;
+		pt.y = y;
+		return pt;
+}
 
+struct curve Curve(struct point ep1, struct point ep2, struct point cp1, struct point cp2){
+	struct curve cv;
+	cv.ep1 = ep1;
+	cv.ep2 = ep2;
+	cv.cp1 = cp1;
+	cv.cp2 = cp2;
+	return cv;
+}
+struct canvas Canvas(double x, double y){
+	struct canvas c;
+	c.x = x;
+	c.y = y;
+	c.first = NULL;
+	return c;
+}
 void read_canvas(struct canvas_node *node, svg *psvg)
 {	
 		// Check what the canvas node points to and then
