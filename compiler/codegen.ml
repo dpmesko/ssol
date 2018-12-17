@@ -271,6 +271,12 @@ let translate (globals, functions) =
 			let flv = expr builder locals f in
 			L.build_call draw_func [| flv ; (expr builder locals ef) |]
 	 			"draw" builder
+    | SCall (fname, args) ->
+        let (ldev, sfd) = StringMap.find fname function_decls in
+        let actuals = List.rev (List.map (fun e -> expr builder locals e) (List.rev args)) in
+				let ret = (match sfd.styp with A.Void -> ""
+						| _-> fname^"_ret") in 
+        L.build_call ldev (Array.of_list actuals) ret builder 
     | SConstructor (A.Point, [f1;f2]) -> 
 				let f1' = expr builder locals f1
 				and f2' = expr builder locals f2 in
