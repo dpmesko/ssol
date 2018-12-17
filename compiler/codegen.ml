@@ -214,17 +214,24 @@ let translate (globals, functions) =
           let can' = expr builder locals can
           and crv' = expr builder locals crv in
           (match op with
-           A.Pipend   -> 
-                   (*construct new node*)
+           A.Pipend ->  
+                   (*construct new node, assign null to next pointer*)
                    let newnode = L.build_alloca canvasnode_t "newnode" builder in
-                   let next_node_ptr = L.build_struct_gep newnode 0 "new_curve" builder in
-                   L.build_store (L.const_null (L.pointer_type canvasnode_t)) next_node_ptr builder;
-                   let curve_ptr = L.build_struct_gep newnode 1 "curve" builder in
-                   L.build_store crv' curve_ptr builder;
-                   let headptr = L.param can' 0 in
-                   L.build_store headptr next_node_ptr builder; (*have new node point to the thing canvas points to*)
-                   L.build_store newnode headptr builder; (*have canvas' headptr point to new node*)         
-          ) 
+                   let next_node_ptr = L.build_struct_gep newnode 0 "next_node_ptr" builder in
+                   ignore(L.build_store (L.const_null (L.pointer_type canvasnode_t)) next_node_ptr builder); 
+								
+									 (* allocate curve, keep pointer *)
+									 let crv_ptr = L.build_alloca cstruct_t "crv_ptr" builder in
+									 ignore(L.build_store crv' crv_ptr builder);
+
+									 (* put curve pointer in the node's crv_ptr field *)
+                   let this_curve = L.build_struct_gep newnode 1 "curveptr" builder in 
+                   (L.build_store crv_ptr this_curve builder);
+									
+                   let headptr = L.param can' 3 in
+                   L.build_store headptr next_node_ptr builder; (*have new node point to the thing canvas points to*) (* 
+                   L.build_store newnode headptr builder; (*have canvas' headptr point to new node*)      *)  ) 
+          
       | SBinop (e1, op, e2) ->
 	  let e1' = expr builder locals e1
 	  and e2' = expr builder locals e2 in
