@@ -36,7 +36,7 @@ let translate (globals, functions) =
   let float_t    = L.double_type context in
   let ptstruct_t = L.struct_type context [| float_t ; float_t |] in 
   let cstruct_t  = L.struct_type context [| ptstruct_t ; ptstruct_t ; ptstruct_t ; ptstruct_t|] in
-  let canvasnode_t = L.named_struct_type context "next_canvasnode" in
+  let canvasnode_t = L.named_struct_type context "canvasnode" in
   let canvasnode_b = L.struct_set_body canvasnode_t [| L.pointer_type (canvasnode_t) ; (L.pointer_type cstruct_t) |] false in
   let canvas_t   = L.struct_type context [| float_t ; float_t ; L.pointer_type canvasnode_t |] 
   in
@@ -177,7 +177,7 @@ let translate (globals, functions) =
 					ignore(L.build_store ex' ref builder); ex'
 		| SField(id,sx) ->
 
-          let getI t n = try StringMap.find n (mem_to_ind t) with Not_found -> raise(Failure("blahroig"))in
+          let getI t n = try StringMap.find n (mem_to_ind t) with Not_found -> raise(Failure("member not found"))in
           let getNextVal o t n = L.build_struct_gep o (getI t n) n builder in
           let rec eval out t = function
                SField(sid, sf)-> eval (getNextVal out t sid) (L.type_of(getNextVal out t sid)) (snd sf)  
@@ -210,6 +210,29 @@ let translate (globals, functions) =
 	  | A.And | A.Or ->
 	      raise (Failure "internal error: semant should have rejected and/or on float")
 	  ) e1' e2' "tmp" builder
+      | SBinop((A.Canvas,_) as can, op, crv) ->
+          let (can',can_s) = (match (snd can) with
+							SId s -> (expr builder locals can, s)
+							|_-> raise(Failure "some is wrong")) 
+          and (crv',crv_s) = (match (snd crv) with
+							SId s -> (expr builder locals crv,s)
+							|_->raise(Failure "something is wrong")) in
+					(*expr builder locals crv in*)
+          (match op with
+           A.Pipend   -> 
+                   (*construct new node*)
+                   let newnode = L.build_alloca canvasnode_t "newnode" builder in
+                   let next_node_ptr = L.build_struct_gep newnode 0 "new_curve" builder in
+                   L.build_store (L.const_null (L.pointer_type canvasnode_t)) next_node_ptr builder;
+                   let curve_ptr = L.build_struct_gep newnode 1 "curve" builder in
+									let crvlv = lookup crv_s locals in
+									let res = L.build_store crvlv curve_ptr builder in
+									let canlv = lookup can_s locals in
+									let headptr = L.build_struct_gep canlv 2 "head" builder in
+									let oldhead = L.build_load headptr "oldptr" builder in
+									L.build_store oldhead next_node_ptr builder;
+								  L.build_store newnode headptr builder; canlv
+          ) 
       | SBinop (e1, op, e2) ->
 	  let e1' = expr builder locals e1
 	  and e2' = expr builder locals e2 in
@@ -227,8 +250,9 @@ let translate (globals, functions) =
 	  | A.Leq     -> L.build_icmp L.Icmp.Sle
 	  | A.Greater -> L.build_icmp L.Icmp.Sgt
 	  | A.Geq     -> L.build_icmp L.Icmp.Sge
-	  ) e1' e2' "tmp" builder
-		| SUnop(op, ((t, _) as e)) ->
+	  ) e1' e2' "tmp" builder 
+      
+    | SUnop(op, ((t, _) as e)) ->
           let e' = expr builder locals e in
 	  (match op with
 	    A.Neg when t = A.Float -> L.build_fneg 
@@ -253,12 +277,10 @@ let translate (globals, functions) =
 				L.build_call ptcons_func [|f1'; f2'|] "Point" builder 
 	  
 		| SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> 
-				(*L.const_struct context [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p4) |]  *)
 				
 				L.build_call ccons_func [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p4) |] "Curve" builder
 				 
     | SConstructor (A.Canvas, [x ; y]) ->
-       (* L.const_struct context [| (expr builder locals x); (expr builder locals y) ; (L.const_null (L.pointer_type canvasnode_t)) |] *)
 
 				L.build_call canvascons_func [| (expr builder locals x); (expr builder locals y) ; (L.const_null (L.pointer_type canvasnode_t)) |] "Canvas" builder
 
