@@ -1,7 +1,7 @@
-int main()
-{
-	Canvas can = Canvas(6.0, 5.0);
-	float x = can.x;
-	printf(x);
-	return 0;
+int main() {
+  Canvas can;
+  can = Canvas (5.0, 6.0);
+	printf(can.x);
+	printf(can.y);
+  return 0;
 }

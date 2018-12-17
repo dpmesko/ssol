@@ -1,19 +1,5 @@
 int main()
 {
-	
-		Canvas can = Canvas(5.2,3.2);
-		
-		Point pt1 = Point(100.0,200.0);
-		Point pt2 = Point(400.0,500.0);
-
-		Curve cv1 = Curve(pt1, pt2, pt1, pt2);
-		Curve cv2 = Curve(Point(132.4,151.2), pt1, pt2, pt2);
-		Curve cv3 = Curve(pt2, Point(436.3,421.1), pt2, pt1);
-
-		can |= cv1;
-		can |= cv2;
-		can |= cv3;
-
-		draw(can, "hiya.svg");
-		return 0;
+	//draw("hello world", "hello_world.svg");
+	return 0;
 }

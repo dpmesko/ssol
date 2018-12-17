@@ -1,8 +1,8 @@
 
 int main() {
 	float f = 10.0;
-	float f = 1.0;
 	printf(f);
+	return 0;
 }
 
 void func(float f){
