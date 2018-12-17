@@ -1,7 +1,13 @@
 #!/bin/sh
-./ssol.native < $1.ssol > $1.ll
-llc -relocation-model=pic $1.ll > $1.s
-gcc -o $1 -fPIC $1.s printbig.o draw.o svg.o
-rm $1.ll $1.s
-./$1
-rm $1
+#
+if [ -e $1.ssol ]; then
+	./ssol.native < $1.ssol > $1.ll
+	llc -relocation-model=pic $1.ll > $1.s
+	gcc -o $1 -fPIC $1.s printbig.o draw.o svg.o
+	rm $1.ll $1.s
+	./$1
+	rm $1
+else
+	echo "'"$1.ssol"'" "does not exist!"
+fi
+
