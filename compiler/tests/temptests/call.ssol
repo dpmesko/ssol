@@ -1,4 +1,5 @@
 int main(){
-	print(10);
+	Canvas can = Canvas(100.0,200.0);
+
 	return 0;
 }
