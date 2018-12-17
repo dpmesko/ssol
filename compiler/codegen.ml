@@ -177,7 +177,7 @@ let translate (globals, functions) =
 					ignore(L.build_store ex' ref builder); ex'
 		| SField(id,sx) ->
 
-          let getI t n = try StringMap.find n (mem_to_ind t) with Not_found -> raise(Failure("blahroig"))in
+          let getI t n = try StringMap.find n (mem_to_ind t) with Not_found -> raise(Failure("member not found"))in
           let getNextVal o t n = L.build_struct_gep o (getI t n) n builder in
           let rec eval out t = function
                SField(sid, sf)-> eval (getNextVal out t sid) (L.type_of(getNextVal out t sid)) (snd sf)  
@@ -269,12 +269,10 @@ let translate (globals, functions) =
 				L.build_call ptcons_func [|f1'; f2'|] "Point" builder 
 	  
 		| SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> 
-				(*L.const_struct context [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p4) |]  *)
 				
 				L.build_call ccons_func [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p4) |] "Curve" builder
 				 
     | SConstructor (A.Canvas, [x ; y]) ->
-       (* L.const_struct context [| (expr builder locals x); (expr builder locals y) ; (L.const_null (L.pointer_type canvasnode_t)) |] *)
 
 				L.build_call canvascons_func [| (expr builder locals x); (expr builder locals y) ; (L.const_null (L.pointer_type canvasnode_t)) |] "Canvas" builder
 
