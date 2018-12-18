@@ -74,7 +74,6 @@ int main()
 		tmp = tmp *-1;
 		start = crv.ep2;
 		c |= crv;
-
 	}
 
 	draw(c,"fib_spiral.svg");
