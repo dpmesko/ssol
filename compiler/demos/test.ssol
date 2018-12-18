@@ -1,0 +1,10 @@
+int main(){
+
+
+	float f = 1.41421 / 2.0 * 50.0;
+	Curve c = Curve(Point(0.0,0.0),Point(50.0,50.0),Point(0.0,f),Point(0.0,f));
+	Canvas can = Canvas(100.0,100.0);
+	can |= c;
+	draw(can, "test.svg");
+	return 0;
+}

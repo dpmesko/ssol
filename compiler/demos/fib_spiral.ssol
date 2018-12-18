@@ -1,26 +1,54 @@
-int fib(int x)
+float fib(float x)
 {
-  if (x < 2) return 1;
-  return fib(x-1) + fib(x-2);
+  if (x < 2.0) return 1.0;
+  return fib(x-1.0) + fib(x-2.0);
 }
 
 Curve makeCurve(float rad, Point init,float xd, float yd ){
-	float fx;
-	float fy;
-	Point arr[4];
-	
-	 
-	int i;
-	for(i=0; i<4; i= i+1){
-	fx  = init.x;
-	fx = fx + (rad *xd);
-	fy = init.y;
-	fy = fy + (rad *yd);
-	Point p = Point(fx,fy);
-	arr[i] = p;	
-	}
-	 
-	Curve c = Curve(arr[0],arr[1],arr[2],arr[3]);
+		float fx;
+		float fy;
+		float sx;
+		float sy;
+			
+		sx = init.x;
+		sy = init.y;
+			
+		fx  = init.x;
+		fx = fx + (rad *xd);
+		fy = init.y;
+		fy = fy + (rad *yd);
+		
+		Point ep2;
+		ep2.x = fx;
+		ep2.y = fy;
+
+		Point cp1;
+		Point cp2;
+
+		if (xd == yd){
+			float t; 
+			
+			cp1.x = sx;
+			t =  sx + (rad*0.65* xd);	
+			cp2.x = t;
+
+			t =  sy + (rad*0.65* yd);	
+			cp1.y = t;
+			cp2.y = fy; 
+
+		}else{
+			float t; 
+			cp1.y = sy;
+			t =  sy + (rad*0.65* yd);	
+			cp2.y = sy;
+
+			t =  sx + (rad*0.65* xd);	
+			cp1.x = t;
+			cp2.x = fx; 
+				
+		}	
+
+	Curve c = Curve(init,ep2, cp1, cp2);
 
 	return c; 
 }
@@ -29,13 +57,15 @@ int main()
 {
 	Point p = Point(1.0,1.0);
 	float i;
-	Canvas c = Canvas(100.0,100.0);
-	Point start = Point(65.0,65.0);
-  float ydir = -1.0;
+	Canvas c = Canvas(750.0,750.0);
+	Point start = Point(400.0,265.0);
+  float ydir = 1.0;
 	float xdir = -1.0;
 	int tmp = 1;
 	for (i=0.0; i<10.0; i=i+1.0){
-		Curve crv = makeCurve(i,start,xdir,ydir);
+		
+		float j = fib(i)*6.0;
+		Curve crv = makeCurve(j,start,xdir,ydir);
 		if (tmp>0){
 			xdir = xdir *-1.0;
 		} else {
