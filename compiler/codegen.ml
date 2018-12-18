@@ -279,7 +279,6 @@ let translate (globals, functions) =
 				L.build_call ccons_func [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p4) |] "Curve" builder
     | SCall ("Canvas", [x ; y]) ->
 				L.build_call canvascons_func [| (expr builder locals x); (expr builder locals y) |] "Canvas" builder
-
     in
     
     (* LLVM insists each basic block end with exactly one "terminator" 

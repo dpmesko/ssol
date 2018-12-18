@@ -1,12 +1,7 @@
-int main()
-{
-	Canvas can = Canvas(0.0, 590.0);
-	
+int main() {
+  Canvas can;
+  can = Canvas (5.0, 6.0);
 	printf(can.x);
 	printf(can.y);
-
-	Point pt = Point(69.0, 420.0);
-	printf(pt.x);
-	printf(pt.y);
-	return 0;
+  return 0;
 }

@@ -1,9 +1,9 @@
 # "make test" Compiles everything and runs the regression tests
 
 # commented out for the purposes of hello world
-#.PHONY : test
-#test : all testall.sh
-#	./testall.sh
+.PHONY : test
+test : all testall.sh
+	./testall.sh
 
 # "make all" builds the executable as well as the "printbig" library designed
 # to test linking external code
@@ -50,7 +50,8 @@ TESTS = \
   add1 arith1 arith2 arith3 fib float1 float2 float3 for1 for2 func1 \
   func2 func3 func4 func5 func6 func7 func8 func9 gcd2 gcd global1 \
   global2 global3 hello if1 if2 if3 if4 if5 if6 local1 local2 ops1 \
-  ops2 printbig var1 var2 while1 while2
+  ops2 printbig var1 var2 while1 while2 test-canvasassign test-canvas-construct\
+	test-curveconstruct test-draw
 
 FAILS = \
   assign1 assign2 assign3 dead1 dead2 expr1 expr2 expr3 float1 float2 \
@@ -58,8 +59,8 @@ FAILS = \
   func8 func9 global1 global2 if1 if2 if3 nomain printbig printb print \
   return1 return2 while1 while2
 
-TESTFILES = $(TESTS:%=test-%.mc) $(TESTS:%=test-%.out) \
-	    $(FAILS:%=fail-%.mc) $(FAILS:%=fail-%.err)
+TESTFILES = $(TESTS:%=test-%.ssol) $(TESTS:%=test-%.out) \
+	    $(FAILS:%=fail-%.ssol) $(FAILS:%=fail-%.err)
 
 TARFILES = ast.ml sast.ml codegen.ml Makefile _tags ssol.ml parserssol.mly \
 	README scanner.mll semant.ml testall.sh \
