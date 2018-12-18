@@ -121,7 +121,6 @@ expr:
   | expr GEQ    expr { Binop($1, Geq,   $3)   }
   | expr AND    expr { Binop($1, And,   $3)   }
   | expr OR     expr { Binop($1, Or,    $3)   }
-  | expr PIPE   expr { Binop($1, Pipe,  $3)   }
   | expr PIPEND expr { Binop($1, Pipend, $3)  }
   | ID   DOT    expr   { Field($1, $3)          } 
   | MINUS expr %prec NOT { Unop(Neg, $2)      }
@@ -131,7 +130,7 @@ expr:
   | ID LBRACK expr RBRACK { Access($1, $3)    }
   | ID LBRACK expr RBRACK ASSIGN expr { ArrayAssign($1, $3, $6) }
   | ID LPAREN args_opt RPAREN { Call($1, $3)  }
-  | typ LPAREN args_opt RPAREN { Constructor($1, $3) }
+  | typ LPAREN args_opt RPAREN { Call((string_of_typ $1), $3) }
 	| LPAREN expr RPAREN { $2                   }
 
 array_lit:

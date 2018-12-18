@@ -93,10 +93,10 @@ struct curve Curve(struct point ep1, struct point ep2, struct point cp1, struct 
 		return cv;
 }
 
-struct canvas Canvas(float x, float y)
+struct canvas Canvas(double x, double y)
 {
 		struct canvas c;
-		
+	
 		c.x = x;
 		c.y = y;
 		c.first = 0;

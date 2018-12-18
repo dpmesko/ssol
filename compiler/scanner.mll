@@ -32,7 +32,6 @@ rule token = parse
 | ">="     { GEQ }
 | "&&"     { AND }
 | "||"     { OR }
-| '|'	   { PIPE }
 | "|="     { PIPEND }
 | "!"      { NOT }
 | "if"     { IF }

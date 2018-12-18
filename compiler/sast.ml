@@ -18,7 +18,6 @@ and sx =
   | SAccess of string * sexpr
   | SArrayAssign of string * sexpr * sexpr
   | SCall of string * sexpr list
-  | SConstructor of typ * sexpr list
 	| SNoexpr
 
 type sstmt =
@@ -63,7 +62,6 @@ let rec string_of_sexpr (t, e) =
   | SArrayAssign(arr, index, rval) -> arr ^ "[" ^ string_of_sexpr index ^ "]" ^ string_of_sexpr rval
   | SCall(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
-  | SConstructor(typ, args) -> string_of_typ typ ^ "(" ^ String.concat ", " (List.map string_of_sexpr args) ^ ")"
   | SNoexpr -> ""  ) ^ ")"				     
 
 let rec string_of_sstmt = function

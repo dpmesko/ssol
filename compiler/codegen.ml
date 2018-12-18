@@ -38,7 +38,7 @@ let translate (globals, functions) =
   let cstruct_t  = L.struct_type context [| ptstruct_t ; ptstruct_t ; ptstruct_t ; ptstruct_t|] in
   let canvasnode_t = L.named_struct_type context "canvasnode" in
   let canvasnode_b = L.struct_set_body canvasnode_t [| L.pointer_type (canvasnode_t) ; (L.pointer_type cstruct_t) |] false in
-  let canvas_t   = L.struct_type context [| float_t ; float_t ; L.pointer_type canvasnode_t |] 
+	let canvas_t = L.struct_type context [| float_t ; float_t ; L.pointer_type canvasnode_t |]  
   in
   
   (* Return the LLVM type for a SSOL type *)
@@ -91,7 +91,7 @@ let translate (globals, functions) =
 	let ccons_func : L.llvalue = 
 			L.declare_function "Curve" ccons_t the_module in
 	let canvascons_t : L.lltype =
-			L.function_type canvas_t [|float_t; float_t; L.pointer_type canvasnode_t|] in
+			L.function_type canvas_t [|float_t; float_t; (* L.pointer_type canvasnode_t *)|] in
 	let canvascons_func : L.llvalue  = 
 			L.declare_function "Canvas" canvascons_t the_module in 
 
@@ -271,26 +271,14 @@ let translate (globals, functions) =
 			let flv = expr builder locals f in
 			L.build_call draw_func [| flv ; (expr builder locals ef) |]
 	 			"draw" builder
-    | SCall (fname, args) ->
-        let (ldev, sfd) = StringMap.find fname function_decls in
-        let actuals = List.rev (List.map (fun e -> expr builder locals e) (List.rev args)) in
-				let ret = (match sfd.styp with A.Void -> ""
-						| _-> fname^"_ret") in 
-        L.build_call ldev (Array.of_list actuals) ret builder 
-    | SConstructor (A.Point, [f1;f2]) -> 
+    | SCall ("Point", [f1;f2]) -> 
 				let f1' = expr builder locals f1
 				and f2' = expr builder locals f2 in
 				L.build_call ptcons_func [|f1'; f2'|] "Point" builder 
-	  
-		| SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> 
-				
+		| SCall ("Curve", [p1 ; p2 ; p3 ; p4]) -> 
 				L.build_call ccons_func [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p4) |] "Curve" builder
-				 
-    | SConstructor (A.Canvas, [x ; y]) ->
-
-				L.build_call canvascons_func [| (expr builder locals x); (expr builder locals y) ; (L.const_null (L.pointer_type canvasnode_t)) |] "Canvas" builder
-
-    (*TODO: when we build_struct_gep from pipe, we will need to do a build_store to fill the null canvasnode_t pointer*)
+    | SCall ("Canvas", [x ; y]) ->
+				L.build_call canvascons_func [| (expr builder locals x); (expr builder locals y) |] "Canvas" builder
     in
     
     (* LLVM insists each basic block end with exactly one "terminator" 
