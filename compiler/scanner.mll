@@ -8,7 +8,7 @@ let digits = digit+
 rule token = parse
   [' ' '\t' '\r' '\n'] { token lexbuf } (* Whitespace *)
 | "/*"     { comment lexbuf }           (* Comments *)
-| "//"     { single lexbuf }
+| "//"     { single lexbuf }						(* Single line comments *)
 | '('      { LPAREN }
 | ')'      { RPAREN }
 | '{'      { LBRACE }
@@ -35,7 +35,6 @@ rule token = parse
 | "|="     { PIPEND }
 | "!"      { NOT }
 | "if"     { IF }
-(*| "elif"   { ELIF }*)
 | "else"   { ELSE }
 | "for"    { FOR }
 | "while"  { WHILE }

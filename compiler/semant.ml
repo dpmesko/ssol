@@ -181,23 +181,18 @@ let check (globals, functions) =
               Assign(v,e) as ex-> 
                    let ty = type_of_identifier memmap v in
                       (match e with
-                         Fliteral f -> 
+                         Fliteral _ -> 
                             let lt = StringMap.find v memmap
                             and (rt, e') = expr locals e in
                             let err = "illegal assigoierfoierjfnment " ^ string_of_typ lt ^ " = " ^ 
                               string_of_typ rt ^ " in " ^ string_of_expr ex ^ " for identifier Field." ^ v
                             in (check_assign lt rt err, SAssign(v, (rt, e')))
-                        | Id s ->  (ty,SAssign(v,(ty, SId s)) ) ) 
+                        | Id s ->  (ty,SAssign(v,(ty, SId s)) ) 
+												| _ -> raise (Failure "illegal member access - expression type is not a field")) 
               | _ -> expr memmap mem 
             in
 					(fst smem, SField(obj, smem))
 
-					(* TODO: Need to check type of expr? If so, what is acceptable?
-					(match mem with
-							Field(_,_) | Id _ | Access(_, _) -> 
-								let smem = expr memmap mem in
-								(fst (smem), SField(obj, smem))
-						| _ -> raise (Failure ("illegal member access: " ^ string_of_expr e)) ) *)
       | Unop(op, e) as ex -> 
           let (t, e') = expr locals e in
           let ty = match op with

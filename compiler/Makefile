@@ -3,7 +3,7 @@
 # commented out for the purposes of hello world
 .PHONY : test
 test : all testall.sh
-	./testall.sh
+# 	./testall.sh
 
 # "make all" builds the executable as well as the "printbig" library designed
 # to test linking external code
@@ -29,7 +29,7 @@ ssol.native :
 clean :
 	ocamlbuild -clean
 	rm -rf testall.log ocamlllvm *.diff
-	rm -f *.err *.ll
+	rm -f *.err *.ll *.s
 	rm -f *.o
 
 # Testing the "printbig" example
