@@ -10,6 +10,7 @@ Detailed documentation on the OCaml LLVM library:
 http://llvm.moe/
 http://llvm.moe/ocaml/
 
+
 *)
 
 module L = Llvm
@@ -274,7 +275,12 @@ let translate (globals, functions) =
 				L.build_call ccons_func [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p4) |] "Curve" builder
     | SCall ("Canvas", [x ; y]) ->
 				L.build_call canvascons_func [| (expr builder locals x); (expr builder locals y) |] "Canvas" builder
-		| _ -> raise (Failure "something unexpected happened... expression was not caught in codegen")
+    | SCall (fname, args) ->
+        let (ldev, sfd) = StringMap.find fname function_decls in
+        let actuals = List.rev (List.map (fun e -> expr builder locals e) (List.rev args)) in
+        let ret = (match sfd.styp with A.Void -> ""
+            | _-> fname^"_ret") in 
+        L.build_call ldev (Array.of_list actuals) ret builder 
     in
     
     (* LLVM insists each basic block end with exactly one "terminator" 
