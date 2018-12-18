@@ -193,12 +193,6 @@ let check (globals, functions) =
             in
 					(fst smem, SField(obj, smem))
 
-					(* TODO: Need to check type of expr? If so, what is acceptable?
-					(match mem with
-							Field(_,_) | Id _ | Access(_, _) -> 
-								let smem = expr memmap mem in
-								(fst (smem), SField(obj, smem))
-						| _ -> raise (Failure ("illegal member access: " ^ string_of_expr e)) ) *)
       | Unop(op, e) as ex -> 
           let (t, e') = expr locals e in
           let ty = match op with
