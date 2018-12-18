@@ -37,7 +37,7 @@ let translate (globals, functions) =
   let ptstruct_t = L.struct_type context [| float_t ; float_t |] in 
   let cstruct_t  = L.struct_type context [| ptstruct_t ; ptstruct_t ; ptstruct_t ; ptstruct_t|] in
   let canvasnode_t = L.named_struct_type context "canvasnode" in
-  let canvasnode_b = L.struct_set_body canvasnode_t [| L.pointer_type (canvasnode_t) ; (L.pointer_type cstruct_t) |] false in
+  ignore(L.struct_set_body canvasnode_t [| L.pointer_type (canvasnode_t) ; (L.pointer_type cstruct_t) |] false);
 	let canvas_t = L.struct_type context [| float_t ; float_t ; L.pointer_type canvasnode_t |]  
   in
   
@@ -75,9 +75,6 @@ let translate (globals, functions) =
       L.function_type i32_t [| i32_t |] in
   let printbig_func : L.llvalue =
       L.declare_function "printbig" printbig_t the_module in
-  (*let sprintf_t = L.var_arg_function_type i32_t [| L.pointer_type i8_t ; L.pointer_type i8_t |] in
-  let sprint_func =
-      L.declare_function "sprintf" sprintf_t the_module in*)
 	let draw_t : L.lltype = 
  			L.function_type i32_t [| canvas_t ; str_t |] in
 	let draw_func : L.llvalue =
@@ -112,9 +109,7 @@ let translate (globals, functions) =
     let builder = L.builder_at_end context (L.entry_block the_function) in
 
     let int_format_str = L.build_global_stringptr "%d\n" "fmt" builder
-    and char_format_str = L.build_global_stringptr "%c\n" "fmt" builder
-    and float_format_str = L.build_global_stringptr "%g\n" "fmt" builder
-		and str_format_str = L.build_global_stringptr "%s\n" "fmt" builder in
+    and float_format_str = L.build_global_stringptr "%g\n" "fmt" builder in
 
     (* Construct the function's "locals": formal arguments and locally
        declared variables.  Allocate each on the stack, initialize their
@@ -184,11 +179,11 @@ let translate (globals, functions) =
               |  SId sid -> 
                     let ref = L.build_struct_gep out (getI t sid) sid builder in
                     L.build_load ref sid builder
-							| SAssign(s,e) as ex-> 
+							| SAssign(s,e) -> 
 									let ref = L.build_struct_gep out (getI t s) s builder in
 									let e' =  expr builder locals e in
 									ignore(L.build_store e' ref builder); e'  
-              | _ -> raise(Failure("some invalid field type used"))
+              | _ -> raise(Failure("invalid field usage"))
           in eval (lookup id locals) (L.type_of (lookup id locals)) (snd sx)
         
 			| SBinop ((A.Float,_ ) as e1, op, e2) ->
@@ -207,32 +202,31 @@ let translate (globals, functions) =
 	  | A.Leq     -> L.build_fcmp L.Fcmp.Ole
 	  | A.Greater -> L.build_fcmp L.Fcmp.Ogt
 	  | A.Geq     -> L.build_fcmp L.Fcmp.Oge
-	  | A.And | A.Or ->
-	      raise (Failure "internal error: semant should have rejected and/or on float")
+	  | _ ->
+	      raise (Failure ("illegal usage of operator " ^ (A.string_of_op op) ^ " on float"))
 	  ) e1' e2' "tmp" builder
       | SBinop((A.Canvas,_) as can, op, crv) ->
-          let (can',can_s) = (match (snd can) with
+          let (_,can_s) = (match (snd can) with
 							SId s -> (expr builder locals can, s)
-							|_-> raise(Failure "some is wrong")) 
-          and (crv',crv_s) = (match (snd crv) with
+							|_-> raise(Failure "improper usage of pipend - canvas")) 
+          and (_,crv_s) = (match (snd crv) with
 							SId s -> (expr builder locals crv,s)
-							|_->raise(Failure "something is wrong")) in
-					(*expr builder locals crv in*)
+							|_->raise(Failure "improper usage of pipend - curve")) in
           (match op with
-           A.Pipend   -> 
+          	 A.Pipend   -> 
                    (*construct new node*)
                    let newnode = L.build_alloca canvasnode_t "newnode" builder in
                    let next_node_ptr = L.build_struct_gep newnode 0 "new_curve" builder in
-                   L.build_store (L.const_null (L.pointer_type canvasnode_t)) next_node_ptr builder;
+                   ignore(L.build_store (L.const_null (L.pointer_type canvasnode_t)) next_node_ptr builder);
                    let curve_ptr = L.build_struct_gep newnode 1 "curve" builder in
 									let crvlv = lookup crv_s locals in
-									let res = L.build_store crvlv curve_ptr builder in
+									ignore(L.build_store crvlv curve_ptr builder);
 									let canlv = lookup can_s locals in
 									let headptr = L.build_struct_gep canlv 2 "head" builder in
 									let oldhead = L.build_load headptr "oldptr" builder in
-									L.build_store oldhead next_node_ptr builder;
-								  L.build_store newnode headptr builder; canlv
-          ) 
+									ignore(L.build_store oldhead next_node_ptr builder);
+								  ignore(L.build_store newnode headptr builder); canlv
+						| _ -> raise (Failure ("improper usage of pipend with " ^ (string_of_sexpr can) ^ " and " ^ (string_of_sexpr crv))) ) 
       | SBinop (e1, op, e2) ->
 	  let e1' = expr builder locals e1
 	  and e2' = expr builder locals e2 in
@@ -250,6 +244,7 @@ let translate (globals, functions) =
 	  | A.Leq     -> L.build_icmp L.Icmp.Sle
 	  | A.Greater -> L.build_icmp L.Icmp.Sgt
 	  | A.Geq     -> L.build_icmp L.Icmp.Sge
+		| _ 				-> raise (Failure "illegal binary operation")
 	  ) e1' e2' "tmp" builder 
       
     | SUnop(op, ((t, _) as e)) ->
@@ -279,6 +274,7 @@ let translate (globals, functions) =
 				L.build_call ccons_func [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p4) |] "Curve" builder
     | SCall ("Canvas", [x ; y]) ->
 				L.build_call canvascons_func [| (expr builder locals x); (expr builder locals y) |] "Canvas" builder
+		| _ -> raise (Failure "something unexpected happened... expression was not caught in codegen")
     in
     
     (* LLVM insists each basic block end with exactly one "terminator" 

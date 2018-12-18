@@ -29,7 +29,7 @@ ssol.native :
 clean :
 	ocamlbuild -clean
 	rm -rf testall.log ocamlllvm *.diff
-	rm -f *.err *.ll
+	rm -f *.err *.ll *.s
 	rm -f *.o
 
 # Testing the "printbig" example
