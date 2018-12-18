@@ -35,17 +35,20 @@ let check (globals, functions) =
 
   (* TODO: Passing "x" as element name - possible duplicate conflict?*)
 	let built_in_decls = 
-    let add_bind map (name, tylst) = StringMap.add name {
-      typ = Void;
+    let add_bind map (name, retyp, formlist) = StringMap.add name {
+      typ = retyp;
       fname = name; 
-      formals = List.map (fun elem -> (elem, "x")) tylst;
+      formals = formlist;
       (* locals = []; *) body = [] } map
-    in List.fold_left add_bind StringMap.empty [ ("print", [Int]);
-			                         ("printb", [Bool]);
-			                         ("printf", [Float]);
-			                         ("printbig", [Int]);
-						 									 ("sprint", [String]);
-	 														 ("draw", [Canvas; String])]
+    in List.fold_left add_bind StringMap.empty [ ("print", Void, [(Int, "x")]);
+	 	                     ("printb", Void, [(Bool, "x")]);
+	                       ("printf", Void, [(Float, "x")]);
+			                   ("printbig", Void, [(Int, "x")]);
+					 							 ("sprint", Void, [(String, "x")]);
+	 											 ("draw", Void, [(Canvas, "can"); (String, "filename")]);
+												 ("Point", Point, [(Float, "x"); (Float, "y")]);
+												 ("Curve", Curve, [(Point, "ep1") ; (Point, "ep2") ; (Point, "cp1") ; (Point, "cp2")]);
+												 ("Canvas", Canvas, [(Float, "x"); (Float, "y")]);]
   
   in
 
@@ -238,15 +241,6 @@ let check (globals, functions) =
           in 
           let args' = List.map2 check_call fd.formals args
           in (fd.typ, SCall(fname, args'))
-			| Constructor(ty, exl) -> 
-					let sxl = List.map (expr locals) exl in
-					(* NEED TO CHECK ARGS! - convert to Call() ?*)
-					match ty with
-							Point -> (ty, SConstructor(ty, sxl))
-						| Curve -> (ty, SConstructor(ty, sxl))
-						| Canvas -> (ty, SConstructor(ty, sxl))
-						| x -> raise (Failure ("illegal type constructor call, " ^ string_of_typ x ^
-									" is not a complex type"))
     in
 
     let check_bool_expr locals e = 

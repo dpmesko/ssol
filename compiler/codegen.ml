@@ -271,13 +271,13 @@ let translate (globals, functions) =
 			let flv = expr builder locals f in
 			L.build_call draw_func [| flv ; (expr builder locals ef) |]
 	 			"draw" builder
-    | SConstructor (A.Point, [f1;f2]) -> 
+    | SCall ("Point", [f1;f2]) -> 
 				let f1' = expr builder locals f1
 				and f2' = expr builder locals f2 in
 				L.build_call ptcons_func [|f1'; f2'|] "Point" builder 
-		| SConstructor (A.Curve, [p1 ; p2 ; p3 ; p4]) -> 
+		| SCall ("Curve", [p1 ; p2 ; p3 ; p4]) -> 
 				L.build_call ccons_func [| (expr builder locals p1) ; (expr builder locals p2) ; (expr builder locals p3) ; (expr builder locals p4) |] "Curve" builder
-    | SConstructor (A.Canvas, [x ; y]) ->
+    | SCall ("Canvas", [x ; y]) ->
 				L.build_call canvascons_func [| (expr builder locals x); (expr builder locals y) |] "Canvas" builder
 
     in

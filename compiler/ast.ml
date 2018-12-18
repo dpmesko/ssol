@@ -25,7 +25,6 @@ type expr =
   | Access of string * expr
   | ArrayAssign of string * expr * expr
   | Call of string * expr list
-  | Constructor of typ * expr list
   | Noexpr
 
 type stmt =
@@ -101,7 +100,6 @@ let rec string_of_expr = function
   | ArrayAssign(arr, index, rval) -> arr ^ "[" ^ string_of_expr index ^ "]" ^ string_of_expr rval
   | Call(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
-	| Constructor(typ, args) -> string_of_typ typ ^ "(" ^ String.concat ", " (List.map string_of_expr args) ^ ")"
 	| Noexpr -> ""
 
 	let rec string_of_stmt = function
