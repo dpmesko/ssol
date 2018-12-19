@@ -1,4 +1,4 @@
 int main() {
-  Anything(1,1);
+  Point(1, 2);
   return 0;
 }

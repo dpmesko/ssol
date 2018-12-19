@@ -1,8 +1,5 @@
 int main() {
-	Curve c = Curve(Point(1.0, 1.0), Point(1.0, 1.0), Point(1.0, 1.0), Point(1.0, 1.0));
-	Point p;
-	p = Point(7.0,2.4);
-	String somestring = "fwefw";
-	printf(c.cp1.x);
+  Curve c = Curve(Point(1.0, 1.0), Point(1.0, 1.0), Point(1.0, 1.0), Point(1.0, 1.0));
+  printf(c.ep1.x);
 	return 0; 
 }
