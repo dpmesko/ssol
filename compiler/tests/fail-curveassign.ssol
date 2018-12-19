@@ -1,0 +1,4 @@
+int main(){
+  int c = Curve(Point(10.0, 10.0), Point(10.0, 10.0), Point(10.0, 10.0), Point(10.0, 10.0));
+  return 0; 
+}

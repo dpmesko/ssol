@@ -1,0 +1,6 @@
+int main(){
+  Curve c = Curve(Point(10.0, 10.0), Point(10.0, 10.0), Point(10.0, 10.0), Point(10.0, 10.0));
+  float cx = c.cp1.x;
+  printf(cx);
+  return 0; 
+}
