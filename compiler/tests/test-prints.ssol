@@ -1,0 +1,5 @@
+int main(){
+		String str = "hello world";
+		prints(str);
+		return 0;
+}
