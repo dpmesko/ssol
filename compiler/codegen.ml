@@ -1,12 +1,11 @@
 (* SSOL Code generation: translate takes a semantically checked AST and
-produces LLVM IR
-
-LLVM tutorial: Make sure to read the OCaml version of the tutorial
-
-http://llvm.org/docs/tutorial/index.html
+    produces LLVM IR
+    
+    Authors: Jeevan Farias, Madeleine Tipp, Daniel Mesko 
 
 Detailed documentation on the OCaml LLVM library:
 
+http://llvm.org/docs/tutorial/index.html
 http://llvm.moe/
 http://llvm.moe/ocaml/
 

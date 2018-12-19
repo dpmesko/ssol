@@ -1,4 +1,5 @@
 (* Ocamllex scanner for SSOL *)
+(*     Authors: Jeevan Farias, Madeleine Tipp, Daniel Mesko *) 
 
 { open Parserssol }
 

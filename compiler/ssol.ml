@@ -1,6 +1,8 @@
 (* Top-level of the SSOL compiler: scan & parse the input,
    check the resulting AST and generate an SAST from it, generate LLVM IR,
-   and dump the module *)
+   and dump the module 
+   
+   Authors: Jeevan Farias, Madeleine Tipp, Daniel Mesko *)
 
 type action = Ast | Sast | LLVM_IR | Compile
 

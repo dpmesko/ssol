@@ -10,6 +10,8 @@
 //				http://www.code-in-c.com/writing-svg-library-c/
 //
 //			See also svg.h and svg.c
+//      
+//      Additional authorship: Daniel Mesko
 //
 //-------------------------------------------------------
 

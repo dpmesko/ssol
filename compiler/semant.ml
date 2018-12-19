@@ -1,4 +1,5 @@
-(* Semantic checking for the MicroC compiler *)
+(* Semantic checking for the SSOL compiler *)
+(*    Authors: Jeevan Farias, Madeleine Tipp, Daniel Mesko *)
 
 open Ast
 open Sast

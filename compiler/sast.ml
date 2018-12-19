@@ -1,4 +1,5 @@
 (* Semantically-checked Abstract Syntax Tree and functions for printing it *)
+(*   Authors: Jeevan Farias, Madeleine Tipp, Daniel Mesko *)
 
 open Ast
 
