@@ -18,7 +18,7 @@ and sx =
   | SAccess of string * sexpr
   | SArrayAssign of string * sexpr * sexpr
   | SCall of string * sexpr list
-	| SNoexpr
+  | SNoexpr
 
 type sstmt =
     SVDecl of typ * string
@@ -35,7 +35,6 @@ type sfunc_decl = {
     styp : typ;
     sfname : string;
     sformals : bind list;
-    (* slocals : bind list; *)
     sbody : sstmt list;
   }
 
@@ -62,7 +61,7 @@ let rec string_of_sexpr (t, e) =
   | SArrayAssign(arr, index, rval) -> arr ^ "[" ^ string_of_sexpr index ^ "]" ^ string_of_sexpr rval
   | SCall(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_sexpr el) ^ ")"
-  | SNoexpr -> ""  ) ^ ")"				     
+  | SNoexpr -> ""  ) ^ ")"     
 
 let rec string_of_sstmt = function
     SVDecl(t, i) -> string_of_typ t ^ " " ^ i ^ "\n"

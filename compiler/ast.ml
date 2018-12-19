@@ -1,4 +1,4 @@
-(* Abstract Syntax Tree and functions for printing it *)
+(* SSOL Abstract Syntax Tree and functions for printing it *)
 
 type op = Add | Sub | Mult | Div | Mod | Equal | Neq | Less | Leq | Greater | Geq |
           And | Or | Pipend
@@ -6,7 +6,7 @@ type op = Add | Sub | Mult | Div | Mod | Equal | Neq | Less | Leq | Greater | Ge
 type uop = Neg | Not
 
 type typ = Int | Bool | Float | Void | Char | String | Point | Curve | Canvas 
-		       | Array of typ * int
+               | Array of typ * int
 
 type bind = typ * string
 
@@ -42,7 +42,6 @@ type func_decl = {
     typ : typ;
     fname : string;
     formals : bind list;
-    (* locals : bind list; *)
     body : stmt list;
   }
 
@@ -100,9 +99,9 @@ let rec string_of_expr = function
   | ArrayAssign(arr, index, rval) -> arr ^ "[" ^ string_of_expr index ^ "]" ^ string_of_expr rval
   | Call(f, el) ->
       f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
-	| Noexpr -> ""
+  | Noexpr -> ""
 
-	let rec string_of_stmt = function
+  let rec string_of_stmt = function
     VDecl(t, i) -> string_of_typ t ^ " " ^ i ^ "\n"
   | VDeclAssign(t, i, e) -> string_of_typ t ^ " " ^ i ^ " = " ^ string_of_expr e ^ "\n"
   | ADecl(t, i, s) -> string_of_typ t ^ " " ^ i ^ "[" ^ string_of_int s ^ "]\n"

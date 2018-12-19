@@ -1,4 +1,4 @@
-(* Ocamllex scanner for MicroC *)
+(* Ocamllex scanner for SSOL *)
 
 { open Parserssol }
 
@@ -8,7 +8,7 @@ let digits = digit+
 rule token = parse
   [' ' '\t' '\r' '\n'] { token lexbuf } (* Whitespace *)
 | "/*"     { comment lexbuf }           (* Comments *)
-| "//"     { single lexbuf }						(* Single line comments *)
+| "//"     { single lexbuf }            (* Single line comments *)
 | '('      { LPAREN }
 | ')'      { RPAREN }
 | '{'      { LBRACE }
