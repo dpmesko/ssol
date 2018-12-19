@@ -1,0 +1,6 @@
+int main(){
+  int x =  {0, 1, 2, 3, 4};
+  char y[5];
+  y = {'a', 'b', 'c', 'd', 'e'};
+  return 0;
+}

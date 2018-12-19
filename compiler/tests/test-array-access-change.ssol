@@ -1,0 +1,11 @@
+int main() {
+  int i = {0, 1, 2, 3};
+  i[0] = 5;
+  print(i[0]);
+
+  int x = 10;
+  i[0] = x;
+  int z = i[0];
+  print(z);
+  return 0;
+}

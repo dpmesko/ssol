@@ -1,0 +1,6 @@
+int main(){
+  char a = {'1', '2', '3', 'f'};
+  char x = a[3];
+  char z = a[10];
+  return 0;
+}
