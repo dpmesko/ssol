@@ -43,7 +43,7 @@ let check (globals, functions) =
                         ("printb", Void, [(Bool, "x")]);
                         ("printf", Void, [(Float, "x")]);
                         ("printbig", Void, [(Int, "x")]);
-                        ("sprint", Void, [(String, "x")]);
+                        ("prints", Void, [(String, "x")]);
                         ("draw", Void, [(Canvas, "can"); (String, "filename")]);
                         ("Point", Point, [(Float, "x"); (Float, "y")]);
                         ("Curve", Curve, [(Point, "ep1") ; (Point, "ep2") ; 
