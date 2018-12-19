@@ -1,8 +1,0 @@
-int main(){
-	float f = 100.0;
-	Canvas c = Canvas(f,200.0);	
-	Point p = Point(f,2.0);
-	Curve c = Curve(p,Point(1.0,1.0),	Point(1.0,1.0),	Point(1.0,1.0));	
-	printf(c.ep1.x);
-	return 0;
-}

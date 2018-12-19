@@ -1,5 +1,0 @@
-int main(){
-	Canvas can = Canvas(100.0,200.0);
-
-	return 0;
-}

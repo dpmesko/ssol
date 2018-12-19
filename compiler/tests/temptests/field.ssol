@@ -1,7 +1,0 @@
-int main(){
-	Point p = Point(1.0,0.0);
-	p.x;
-	//printf(p.x);
-	//printf(p.y);
-	return 0;
-}

@@ -1,9 +1,0 @@
-int main(){
-	// test that VDeclAssign with ArrayLiteral works
-	int arr[10];
-	print(arr[0]);
-	arr[0] = 10;
-	print(arr[0]);
-	return 0;
-}
-

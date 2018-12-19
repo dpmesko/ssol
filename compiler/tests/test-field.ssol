@@ -1,0 +1,16 @@
+int main(){
+  Point a = Point(10.0, 10.0);
+  Point b = Point(10.0, 10.0);
+  Point c = Point(10.0, 10.0);
+  Point d = Point(10.0, 10.0);
+
+  float fx = a.x;
+  printf(fx);
+
+  Curve cur = Curve(a, b, c, d);
+  float sum = cur.cp1.x - 5.0;
+
+  printf(sum);
+
+  return 0;
+}
