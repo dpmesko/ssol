@@ -48,14 +48,15 @@ TESTS = \
   add1 arith1 arith2 arith3 fib float1 float2 float3 for1 for2 func1 \
   func2 func3 func4 func5 func6 func7 func8 func9 gcd2 gcd global1 \
   global2 global3 hello if1 if2 if3 if4 if5 if6 local1 local2 ops1 \
-  ops2 printbig var1 var2 while1 while2 test-canvasassign test-canvas-construct\
-	test-curveconstruct test-draw
+  ops2 printbig var1 var2 while1 while2 call canvasassign canvasconstruct\
+	curveassign curveconstruct draw fib prints ptassign ptconstruct pipend
 
 FAILS = \
   assign1 assign2 assign3 dead1 dead2 expr1 expr2 expr3 float1 float2 \
   for1 for2 for3 for4 for5 func1 func2 func3 func4 func5 func6 func7 \
   func8 func9 global1 global2 if1 if2 if3 nomain printbig printb print \
-  return1 return2 while1 while2
+  return1 return2 while1 while2 canvasassign canvasconstruct curveconstruct-numargs\
+	curveconstruct-typeargs ptassign ptconstruct pipend-fail
 
 TESTFILES = $(TESTS:%=test-%.ssol) $(TESTS:%=test-%.out) \
 	    $(FAILS:%=fail-%.ssol) $(FAILS:%=fail-%.err)
@@ -66,6 +67,6 @@ TARFILES = ast.ml sast.ml codegen.ml Makefile _tags ssol.ml parserssol.mly \
 	Dockerfile \
 	$(TESTFILES:%=tests/%) 
 
-microc.tar.gz : $(TARFILES)
-	cd .. && tar czf microc/microc.tar.gz \
+ssol.tar.gz : $(TARFILES)
+	cd .. && tar czf ssol/ssol.tar.gz \
 		$(TARFILES:%=microc/%)
