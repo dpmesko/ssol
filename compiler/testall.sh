@@ -126,7 +126,7 @@ CheckFail() {
 
     generatedfiles=""
 
-    generatedfiles="$generatedfiles ${basename}.err ${basename}.diff" &&
+    generatedfiles="$generatedfiles *.svg ${basename}.err ${basename}.diff" &&
     RunFail "$SSOL" "<" $1 "2>" "${basename}.err" ">>" $globallog &&
     Compare ${basename}.err ${reffile}.err ${basename}.diff
 

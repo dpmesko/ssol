@@ -1,0 +1,6 @@
+int main() {
+  Curve c = Curve(Point(1.0, 1.0), Point(1.0, 1.0), Point(1.0, 1.0), Point(1.0, 1.0));
+	Canvas can = Canvas(100.0,100.0);
+	can |= c;
+	return 0; 
+}
