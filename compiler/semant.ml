@@ -47,7 +47,7 @@ let check (globals, functions) =
                         ("draw", Void, [(Canvas, "can"); (String, "filename")]);
                         ("Point", Point, [(Float, "x"); (Float, "y")]);
                         ("Curve", Curve, [(Point, "ep1") ; (Point, "ep2") ; 
-                           (Point, "cp1") ; (Point, "cp2")]);
+                        (Point, "cp1") ; (Point, "cp2")]);
                         ("Canvas", Canvas, [(Float, "x"); (Float, "y")]);]
   
   in
