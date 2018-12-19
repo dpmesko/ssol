@@ -1,0 +1,4 @@
+int main(){
+  Curve(30, 30);
+  return 0;
+}
