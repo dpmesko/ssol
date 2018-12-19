@@ -11,8 +11,6 @@ int main()
 		Curve cv3 = Curve(pt2, Point(436.3,421.1), pt2, pt1);
 
 		Canvas can = Canvas(1000.0, 1000.0);
-		printf(can.x);
-		printf(can.y);
 
 		can |= cv1;
 		can |= cv2;
