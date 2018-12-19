@@ -251,9 +251,13 @@ let check (globals, functions) =
             (match s with 
                 VDecl(t,name) -> 
                 (* TODO: CHECK FOR DUPLICATE *)
-                  let block_locals = StringMap.add name t block_locals
-                    in [check_stmt block_locals s] @ check_block block_locals ssl ss
+                  (match t with
+											Void -> raise(Failure ("illegal void local "^name))
+										| _ -> let block_locals = StringMap.add name t block_locals
+														in [check_stmt block_locals s] @ check_block block_locals ssl ss)
               | VDeclAssign(t,name,e) ->
+								if t == Void then raise(Failure ("illegal void local "^name) )
+								else
                 let sx = expr block_locals e in
                 let typ = (match fst(sx) with
                         Array(tp,s) -> if tp == t 
@@ -264,7 +268,9 @@ let check (globals, functions) =
                           else raise(Failure("illegal assignment"))) in
                 let block_locals = StringMap.add name typ block_locals in
                   [check_stmt block_locals s] @ check_block block_locals ssl ss
-              | ADecl(t,name, n) -> 
+              | ADecl(t,name, n) ->
+								if t == Void then raise(Failure ("illegal void local "^name))
+								else 
                 let block_locals = StringMap.add name (Array(t,n)) block_locals
                   in [check_stmt block_locals s] @ check_block block_locals ssl ss
               | _ -> [check_stmt block_locals s] @ check_block block_locals ssl ss)
