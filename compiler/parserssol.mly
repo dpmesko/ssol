@@ -1,4 +1,4 @@
-/* Ocamlyacc parser for MicroC */
+/* Ocamlyacc parser for SSOL */
 
 %{
 open Ast
@@ -47,11 +47,12 @@ decls:
  | decls fdecl { (fst $1, ($2 :: snd $1)) }
 
 fdecl:
-   typ ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE
-     { { typ = $1;
-	 fname = $2;
-	 formals = List.rev $4;
-	 body = List.rev $7 } }
+  typ ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE { 
+    { typ = $1;
+      fname = $2;
+      formals = List.rev $4;
+      body = List.rev $7 }
+    }
 
 formals_opt:
     /* nothing */ { [] }
@@ -82,18 +83,16 @@ stmt_list:
 vdecl_stmt:
     typ ID SEMI { VDecl($1,$2)}
   | typ ID ASSIGN expr SEMI { VDeclAssign($1, $2, $4) }
-  |	typ ID ASSIGN array_lit SEMI { VDeclAssign($1, $2, $4) }
+  | typ ID ASSIGN array_lit SEMI { VDeclAssign($1, $2, $4) }
   | typ ID LBRACK LITERAL RBRACK SEMI { ADecl($1, $2, $4) }
 
-/* FIGURE OUT BREAK,CONTINUE RULE */
 stmt:
     expr SEMI                               { Expr $1               }
-  | vdecl_stmt								{ $1 					}
+  | vdecl_stmt                              { $1                    }
   | RETURN expr_opt SEMI                    { Return $2             }
   | LBRACE stmt_list RBRACE                 { Block(List.rev $2)    }
   | IF LPAREN expr RPAREN stmt %prec NOELSE { If($3, $5, Block([])) }
   | IF LPAREN expr RPAREN stmt ELSE stmt    { If($3, $5, $7)        }
-  /* ELSE IF */
   | FOR LPAREN expr_opt SEMI expr SEMI expr_opt RPAREN stmt
                                             { For($3, $5, $7, $9)   }
   | WHILE LPAREN expr RPAREN stmt           { While($3, $5)         }
@@ -104,7 +103,7 @@ expr_opt:
 
 expr:
     LITERAL          { Literal($1)            }
-  | FLIT	     { Fliteral($1)           }
+  | FLIT             { Fliteral($1)           }
   | BLIT             { BoolLit($1)            }
   | ID               { Id($1)                 }
   | CHAR_LITERAL     { CharLit($1)            }
@@ -113,7 +112,7 @@ expr:
   | expr MINUS  expr { Binop($1, Sub,   $3)   }
   | expr TIMES  expr { Binop($1, Mult,  $3)   }
   | expr DIVIDE expr { Binop($1, Div,   $3)   }
-  | expr MOD 		expr { Binop($1, Mod,   $3)   }
+  | expr MOD    expr { Binop($1, Mod,   $3)   }
   | expr EQ     expr { Binop($1, Equal, $3)   }
   | expr NEQ    expr { Binop($1, Neq,   $3)   }
   | expr LT     expr { Binop($1, Less,  $3)   }
@@ -123,16 +122,16 @@ expr:
   | expr AND    expr { Binop($1, And,   $3)   }
   | expr OR     expr { Binop($1, Or,    $3)   }
   | expr PIPEND expr { Binop($1, Pipend, $3)  }
-  | ID   DOT    expr   { Field($1, $3)          } 
-  | MINUS expr %prec NOT { Unop(Neg, $2)      }
-  | NOT expr         { Unop(Not, $2)          }
-  | ID ASSIGN expr   { Assign($1, $3)         }
-  | ID ASSIGN array_lit { Assign($1, $3)      }
-  | ID LBRACK expr RBRACK { Access($1, $3)    }
-  | ID LBRACK expr RBRACK ASSIGN expr { ArrayAssign($1, $3, $6) }
-  | ID LPAREN args_opt RPAREN { Call($1, $3)  }
-  | typ LPAREN args_opt RPAREN { Call((string_of_typ $1), $3) }
-	| LPAREN expr RPAREN { $2                   }
+  | ID   DOT    expr                  { Field($1, $3)                } 
+  | MINUS expr %prec NOT              { Unop(Neg, $2)                }
+  | NOT expr                          { Unop(Not, $2)                }
+  | ID ASSIGN expr                    { Assign($1, $3)               }
+  | ID ASSIGN array_lit               { Assign($1, $3)               }
+  | ID LBRACK expr RBRACK             { Access($1, $3)               }
+  | ID LBRACK expr RBRACK ASSIGN expr { ArrayAssign($1, $3, $6)      }
+  | ID LPAREN args_opt RPAREN         { Call($1, $3)                 }
+  | typ LPAREN args_opt RPAREN        { Call((string_of_typ $1), $3) }
+  | LPAREN expr RPAREN                { $2 }
 
 array_lit:
   LBRACE args_opt RBRACE { ArrayLit($2) }
@@ -143,4 +142,4 @@ args_opt:
 
 args_list:
     expr                    { [$1] }
-  | args_list COMMA expr { $3 :: $1 }
+  | args_list COMMA expr    { $3 :: $1 }

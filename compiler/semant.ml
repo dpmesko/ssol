@@ -15,12 +15,12 @@ let check (globals, functions) =
   (* Verify a list of bindings has no void types or duplicate names *)
   let check_binds (kind : string) (binds : bind list) =
     List.iter (function
-	(Void, b) -> raise (Failure ("illegal void " ^ kind ^ " " ^ b))
+  (Void, b) -> raise (Failure ("illegal void " ^ kind ^ " " ^ b))
       | _ -> ()) binds;
     let rec dups = function
         [] -> ()
-      |	((_,n1) :: (_,n2) :: _) when n1 = n2 ->
-	  raise (Failure ("duplicate " ^ kind ^ " " ^ n1))
+      | ((_,n1) :: (_,n2) :: _) when n1 = n2 ->
+    raise (Failure ("duplicate " ^ kind ^ " " ^ n1))
       | _ :: t -> dups t
     in dups (List.sort (fun (_,a) (_,b) -> compare a b) binds)
   in
@@ -33,22 +33,22 @@ let check (globals, functions) =
 
   (* Collect function declarations for built-in functions: no bodies *)
 
-  (* TODO: Passing "x" as element name - possible duplicate conflict?*)
-	let built_in_decls = 
+  let built_in_decls = 
     let add_bind map (name, retyp, formlist) = StringMap.add name {
       typ = retyp;
       fname = name; 
       formals = formlist;
       (* locals = []; *) body = [] } map
     in List.fold_left add_bind StringMap.empty [ ("print", Void, [(Int, "x")]);
-	 	                     ("printb", Void, [(Bool, "x")]);
-	                       ("printf", Void, [(Float, "x")]);
-			                   ("printbig", Void, [(Int, "x")]);
-					 							 ("sprint", Void, [(String, "x")]);
-	 											 ("draw", Void, [(Canvas, "can"); (String, "filename")]);
-												 ("Point", Point, [(Float, "x"); (Float, "y")]);
-												 ("Curve", Curve, [(Point, "ep1") ; (Point, "ep2") ; (Point, "cp1") ; (Point, "cp2")]);
-												 ("Canvas", Canvas, [(Float, "x"); (Float, "y")]);]
+                        ("printb", Void, [(Bool, "x")]);
+                        ("printf", Void, [(Float, "x")]);
+                        ("printbig", Void, [(Int, "x")]);
+                        ("sprint", Void, [(String, "x")]);
+                        ("draw", Void, [(Canvas, "can"); (String, "filename")]);
+                        ("Point", Point, [(Float, "x"); (Float, "y")]);
+                        ("Curve", Curve, [(Point, "ep1") ; (Point, "ep2") ; 
+                           (Point, "cp1") ; (Point, "cp2")]);
+                        ("Canvas", Canvas, [(Float, "x"); (Float, "y")]);]
   
   in
 
@@ -82,14 +82,10 @@ let check (globals, functions) =
     (* check_binds "local" func.locals; *)
 
 
-  (*let check_dup_def name map =
-    if StringMap.find name map then name else name
-  in*)
-
-	(* Raise an exception if the given rvalue type cannot be assigned to
+  (* Raise an exception if the given rvalue type cannot be assigned to
        the given lvalue type *)
-	let check_assign lvaluet rvaluet err =
-	   match lvaluet with
+  let check_assign lvaluet rvaluet err =
+     match lvaluet with
            Array(lt, ls) ->
               (match rvaluet with
                   Array(rt, rs) -> if (lt == rt && ls == rs) then lvaluet else raise (Failure err)
@@ -98,34 +94,27 @@ let check (globals, functions) =
     in   
   
 
-		(* Build initial symbol table with globals and formals *)
-		let globmap = List.fold_left (fun m (ty, name) -> StringMap.add name ty m) 
-				StringMap.empty (globals @ func.formals)
-		in
+    (* Build initial symbol table with globals and formals *)
+    let globmap = List.fold_left (fun m (ty, name) -> StringMap.add name ty m) 
+        StringMap.empty (globals @ func.formals)
+    in
 
     (* Return type of a symbol from supplied symbol table *)
-		let type_of_identifier locals s =
+    let type_of_identifier locals s =
       try StringMap.find s locals
       with Not_found -> raise (Failure ("undeclared identifier " ^ s))
     in
 
-		(* Return member symbol map for a particular type *)
-		let member_map_of_type ty = match ty with
-				Point | Canvas -> List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
-						StringMap.empty [(Float, "x"); (Float, "y")]
-			| Curve -> List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
-						StringMap.empty [(Point, "ep1"); (Point, "ep2"); (Point, "cp1");
-						(Point, "cp2")]
-			| _ -> raise (Failure ("type " ^ string_of_typ ty ^ " does not have members"))
+    (* Return member symbol map for a particular type *)
+    let member_map_of_type ty = match ty with
+        Point | Canvas -> List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
+            StringMap.empty [(Float, "x"); (Float, "y")]
+      | Curve -> List.fold_left (fun m (ty, name) -> StringMap.add name ty m)
+            StringMap.empty [(Point, "ep1"); (Point, "ep2"); (Point, "cp1");
+            (Point, "cp2")]
+      | _ -> raise (Failure ("type " ^ string_of_typ ty ^ " does not have members"))
 
-		in
-(* 
-    let add_to_symbols name ty = 
-      let res = List.find_opt name func.locals 
-        in match res with 
-          None -> raise(Failure "This variable is already defined")
-          | _ -> func.locals :: [(name,ty)]
-    in *)
+     in
 
 
     (* Return a semantically-checked expression, i.e., with a type *)
@@ -137,17 +126,17 @@ let check (globals, functions) =
       | CharLit l   -> (Char, SCharLit l)
       | StringLit l -> (String, SStringLit l)
       | ArrayLit elist -> 
-				  let typmatch t (ty, _) = 
-						if t == ty then
-		  				ty
-						else
-							raise (Failure ("array elements are not of same type")) 
-   			  and slist = List.map (fun e -> expr locals e) elist in
-					(match slist with
-							[] -> raise (Failure "cannot have array literal with 0 elements")
-						| _ -> 
-							let ty = List.fold_left typmatch (fst (List.hd slist)) slist in 
-							(Array(ty, List.length slist), SArrayLit(slist)) )
+          let typmatch t (ty, _) = 
+            if t == ty then
+              ty
+            else
+              raise (Failure ("array elements are not of same type")) 
+          and slist = List.map (fun e -> expr locals e) elist in
+          (match slist with
+              [] -> raise (Failure "cannot have array literal with 0 elements")
+            | _ -> 
+              let ty = List.fold_left typmatch (fst (List.hd slist)) slist in 
+              (Array(ty, List.length slist), SArrayLit(slist)) )
       | Noexpr      -> (Void, SNoexpr)
       | Id s        -> (type_of_identifier locals s, SId s)
       | Assign(var, e) as ex -> 
@@ -156,42 +145,47 @@ let check (globals, functions) =
           let err = "illegal assignment " ^ string_of_typ lt ^ " = " ^ 
             string_of_typ rt ^ " in " ^ string_of_expr ex ^ " for identifier " ^ var
           in (check_assign lt rt err, SAssign(var, (rt, e'))) 
-	  	| Access(arr, ind) ->
-					let arrtyp = type_of_identifier locals arr 
-					and (ityp, _) as ind' = expr locals ind in
-					(match arrtyp with
-							Array(t, _) -> (match ityp with
-									Int -> (t, SAccess(arr, ind'))
-								|	_ -> raise (Failure ("expected Int for array index value, " ^ 
-													"but was given " ^ string_of_sexpr ind')) )
-				   	| _ -> raise (Failure ("cannot access index " ^ string_of_sexpr ind' ^ 
-									" of " ^ arr ^ ": it has type " ^ string_of_typ arrtyp)) )
-	  	| ArrayAssign(arr, ind, ex) ->
-		 			let arrtyp = type_of_identifier locals arr
-				  and ind' = expr locals ind
-					and ex'= expr locals ex in
-					let err = "illegal assignment " ^ (string_of_typ arrtyp) ^ " = " ^ (string_of_typ (fst ex')) in
-					(match arrtyp with
-							Array(t, _) -> (check_assign t (fst ex') err, SArrayAssign(arr, ind', ex'))
-						| _ -> raise (Failure (err)) )
-			| Field(obj, mem)  -> 
-					let ty = type_of_identifier locals obj in
-					let memmap = member_map_of_type ty in
-					let smem = match mem with
+      | Access(arr, ind) ->
+          let arrtyp = type_of_identifier locals arr 
+          and (ityp, _) as ind' = expr locals ind in
+          (match arrtyp with
+              Array(t, _) -> (match ityp with
+                  Int -> (t, SAccess(arr, ind'))
+                |  _ -> raise (Failure ("expected Int for array index value, " ^ 
+                          "but was given " ^ string_of_sexpr ind')) )
+             | _ -> raise (Failure ("cannot access index " ^ string_of_sexpr ind' ^ 
+                  " of " ^ arr ^ ": it has type " ^ string_of_typ arrtyp)) )
+      | ArrayAssign(arr, ind, ex) ->
+           let arrtyp = type_of_identifier locals arr
+          and ind' = expr locals ind
+          and ex'= expr locals ex in
+          let err = "illegal assignment " ^ (string_of_typ arrtyp) ^ 
+              " = " ^ (string_of_typ (fst ex')) in
+          (match arrtyp with
+              Array(t, _) -> (check_assign t (fst ex') err, 
+                   SArrayAssign(arr, ind', ex'))
+            | _ -> raise (Failure (err)) )
+      | Field(obj, mem)  -> 
+          let ty = type_of_identifier locals obj in
+          let memmap = member_map_of_type ty in
+          let smem = match mem with
               Assign(v,e) as ex-> 
                    let ty = type_of_identifier memmap v in
                       (match e with
                          Fliteral _ -> 
                             let lt = StringMap.find v memmap
                             and (rt, e') = expr locals e in
-                            let err = "illegal assigoierfoierjfnment " ^ string_of_typ lt ^ " = " ^ 
-                              string_of_typ rt ^ " in " ^ string_of_expr ex ^ " for identifier Field." ^ v
+                            let err = "illegal assignment of objec field" ^ 
+                                string_of_typ lt ^ " = " ^ 
+                                string_of_typ rt ^ " in " ^ 
+                                string_of_expr ex ^ " for identifier Field." ^ v
                             in (check_assign lt rt err, SAssign(v, (rt, e')))
                         | Id s ->  (ty,SAssign(v,(ty, SId s)) ) 
-												| _ -> raise (Failure "illegal member access - expression type is not a field")) 
+                        | _ -> raise (Failure ("illegal member access - "
+                                  ^ " expression type is not a field"))) 
               | _ -> expr memmap mem 
             in
-					(fst smem, SField(obj, smem))
+          (fst smem, SField(obj, smem))
 
       | Unop(op, e) as ex -> 
           let (t, e') = expr locals e in
@@ -215,10 +209,10 @@ let check (globals, functions) =
           | Less | Leq | Greater | Geq
                      when same && (t1 = Int || t1 = Float) -> Bool
           | And | Or when same && t1 = Bool -> Bool
-					| Mod when same && t1 = Int -> Int
-					| Pipend when t1 = Canvas && t2 = Curve -> Canvas
+          | Mod when same && t1 = Int -> Int
+          | Pipend when t1 = Canvas && t2 = Curve -> Canvas
           | _ -> raise (
-	      Failure ("illegal binary operator " ^
+        Failure ("illegal binary operator " ^
                        string_of_typ t1 ^ " " ^ string_of_op op ^ " " ^
                        string_of_typ t2 ^ " in " ^ string_of_expr e))
           in (ty, SBinop((t1, e1'), op, (t2, e2')))
@@ -247,13 +241,12 @@ let check (globals, functions) =
     (* Return a semantically-checked statement i.e. containing sexprs *)
 
     let rec check_stmt locals = function
-      Block sl -> (* let ssl = List.map (fun s -> check_stmt locals s) sl in
-          SBlock(ssl) *)
-       let rec check_block block_locals ssl= function
-         (*  s::ss -> ssl @ [(check_stmt block_locals s)] *)
+      Block sl -> 
+        let rec check_block block_locals ssl= function
         [Return _ as s] -> ssl @ [check_stmt block_locals s]
           | Return _::_ -> raise (Failure "nothing may follow a return")
-          | Block sl :: ss -> [check_stmt block_locals (Block sl)] @ (check_block block_locals ssl ss)
+          | Block sl :: ss -> [check_stmt block_locals (Block sl)] 
+                              @ (check_block block_locals ssl ss)
           | s :: ss -> 
             (match s with 
                 VDecl(t,name) -> 
@@ -261,15 +254,15 @@ let check (globals, functions) =
                   let block_locals = StringMap.add name t block_locals
                     in [check_stmt block_locals s] @ check_block block_locals ssl ss
               | VDeclAssign(t,name,e) ->
-								let sx = expr block_locals e in
-								let typ = (match fst(sx) with
-												Array(tp,s) -> if tp == t 
-													then Array(tp,s) 
-													else raise(Failure("Array literal is of inconsistent type"))
-											| _ -> if fst(sx) == t
-													then fst(sx) 
-													else raise(Failure("illegal assignment"))) in
-								let block_locals = StringMap.add name typ block_locals in
+                let sx = expr block_locals e in
+                let typ = (match fst(sx) with
+                        Array(tp,s) -> if tp == t 
+                          then Array(tp,s) 
+                          else raise(Failure("Array literal is of inconsistent type"))
+                      | _ -> if fst(sx) == t
+                          then fst(sx) 
+                          else raise(Failure("illegal assignment"))) in
+                let block_locals = StringMap.add name typ block_locals in
                   [check_stmt block_locals s] @ check_block block_locals ssl ss
               | ADecl(t,name, n) -> 
                 let block_locals = StringMap.add name (Array(t,n)) block_locals
@@ -277,29 +270,29 @@ let check (globals, functions) =
               | _ -> [check_stmt block_locals s] @ check_block block_locals ssl ss)
           | []  -> ssl 
         in SBlock(check_block locals [] sl)
-		| VDecl(t,s) -> SVDecl(t,s)
-	  | VDeclAssign(_,s,e) -> 
-			let sx = expr locals e in
-			let ty = type_of_identifier locals s in 
-			SVDeclAssign(ty,s,sx)
-	  | ADecl(t,s,n) -> SADecl(t,s,n) 
-	  | Expr e -> SExpr (expr locals e)
-      | If(p, b1, b2) -> SIf(check_bool_expr locals p, check_stmt locals b1, check_stmt locals b2)
-      | For(e1, e2, e3, st) ->
-	  SFor(expr locals e1, check_bool_expr locals e2, expr locals e3, check_stmt locals st)
-      | While(p, s) -> SWhile(check_bool_expr locals p, check_stmt locals s)
-      | Return e -> let (t, e') = expr locals e in
+    | VDecl(t,s) -> SVDecl(t,s)
+    | VDeclAssign(_,s,e) -> 
+      let sx = expr locals e in
+      let ty = type_of_identifier locals s in 
+      SVDeclAssign(ty,s,sx)
+    | ADecl(t,s,n) -> SADecl(t,s,n) 
+    | Expr e -> SExpr (expr locals e)
+    | If(p, b1, b2) -> SIf(check_bool_expr locals p, check_stmt locals b1,
+                             check_stmt locals b2)
+    | For(e1, e2, e3, st) ->
+        SFor(expr locals e1, check_bool_expr locals e2, expr locals e3, 
+             check_stmt locals st)
+    | While(p, s) -> SWhile(check_bool_expr locals p, check_stmt locals s)
+    | Return e -> let (t, e') = expr locals e in
         if t = func.typ then SReturn (t, e') 
-        else raise (
-	  Failure ("return gives " ^ string_of_typ t ^ " expected " ^
-		   string_of_typ func.typ ^ " in " ^ string_of_expr e))
+        else raise (Failure ("return gives " ^ string_of_typ t ^ " expected " ^
+       string_of_typ func.typ ^ " in " ^ string_of_expr e))
     in (* body of check_function *)
     { styp = func.typ;
       sfname = func.fname;
       sformals = func.formals;
-      (* slocals  = func.locals; *)
       sbody = match check_stmt globmap (Block func.body) with
-	       SBlock(sl) -> sl
+         SBlock(sl) -> sl
       | _ -> raise (Failure ("internal error: block didn't become a block?"))
     }
   in (globals, List.map check_function functions)

@@ -94,32 +94,6 @@ void svg_bezier(svg *psvg, int x1, int y1, int x2, int y2, int cx1, int cy1,
 }
 
 
-//----------------------------------------------------------------
-// FUNCTION svg_rectangle
-//----------------------------------------------------------------
-void svg_rectangle(svg* psvg, int width, int height, int x, int y, char* fill, char* stroke, int strokewidth, int radiusx, int radiusy)
-{
-    appendstringtosvg(psvg, "    <rect fill='");
-    appendstringtosvg(psvg, fill);
-    appendstringtosvg(psvg, "' stroke='");
-    appendstringtosvg(psvg, stroke);
-    appendstringtosvg(psvg, "' stroke-width='");
-    appendnumbertosvg(psvg, strokewidth);
-    appendstringtosvg(psvg, "px' width='");
-    appendnumbertosvg(psvg, width);
-    appendstringtosvg(psvg, "' height='");
-    appendnumbertosvg(psvg, height);
-    appendstringtosvg(psvg, "' y='");
-    appendnumbertosvg(psvg, y);
-    appendstringtosvg(psvg, "' x='");
-    appendnumbertosvg(psvg, x);
-    appendstringtosvg(psvg, "' ry='");
-    appendnumbertosvg(psvg, radiusy);
-    appendstringtosvg(psvg, "' rx='");
-    appendnumbertosvg(psvg, radiusx);
-    appendstringtosvg(psvg, "' />\n");
-}
-
 //----------------------
 // FUNCTION svg_text
 //----------------------
