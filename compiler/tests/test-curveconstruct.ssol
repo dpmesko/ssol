@@ -1,4 +1,5 @@
 int main() {
   Curve c = Curve(Point(1.0, 1.0), Point(1.0, 1.0), Point(1.0, 1.0), Point(1.0, 1.0));
-  return 0; 
+  printf(c.ep1.x);
+	return 0; 
 }
