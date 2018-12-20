@@ -1,1 +1,1 @@
-Fatal error: exception Failure("illegal assignment char[3] = int[3] in c = [ 0, 1, 2,] for identifier c")
+Fatal error: exception Failure("array elements are not of same type")
