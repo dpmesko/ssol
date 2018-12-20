@@ -1,0 +1,1 @@
+Fatal error: exception Failure("cannot access index (int : 5) of t: it has type char")
