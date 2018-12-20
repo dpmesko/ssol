@@ -48,7 +48,7 @@ let check (globals, functions) =
                         ("draw", Void, [(Canvas, "can"); (String, "filename")]);
                         ("Point", Point, [(Float, "x"); (Float, "y")]);
                         ("Curve", Curve, [(Point, "ep1") ; (Point, "ep2") ; 
-                        (Point, "cp1") ; (Point, "cp2")]);
+                          (Point, "cp1") ; (Point, "cp2")]);
                         ("Canvas", Canvas, [(Float, "x"); (Float, "y")]);]
   
   in
@@ -176,7 +176,7 @@ let check (globals, functions) =
                          Fliteral _ -> 
                             let lt = StringMap.find v memmap
                             and (rt, e') = expr locals e in
-                            let err = "illegal assignment of objec field" ^ 
+                            let err = "illegal assignment of object field" ^ 
                                 string_of_typ lt ^ " = " ^ 
                                 string_of_typ rt ^ " in " ^ 
                                 string_of_expr ex ^ " for identifier Field." ^ v
@@ -251,11 +251,10 @@ let check (globals, functions) =
           | s :: ss -> 
             (match s with 
                 VDecl(t,name) -> 
-                (* TODO: CHECK FOR DUPLICATE *)
                   (match t with
 											Void -> raise(Failure ("illegal void local "^name))
 										| _ -> let block_locals = StringMap.add name t block_locals
-														in [check_stmt block_locals s] @ check_block block_locals ssl ss)
+                           in [check_stmt block_locals s] @ check_block block_locals ssl ss)
               | VDeclAssign(t,name,e) ->
 								if t == Void then raise(Failure ("illegal void local "^name) )
 								else
