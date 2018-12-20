@@ -49,14 +49,17 @@ TESTS = \
   func2 func3 func4 func5 func6 func7 func8 func9 gcd2 gcd global1 \
   global2 global3 hello if1 if2 if3 if4 if5 if6 local1 local2 ops1 \
   ops2 printbig var1 var2 while1 while2 call canvasassign canvasconstruct\
-	curveassign curveconstruct draw fib prints ptassign ptconstruct pipend
+	curveassign curveconstruct draw fib prints ptassign ptconstruct pipend\
+  array-access-change array-access array-decl field
 
 FAILS = \
   assign1 assign2 assign3 dead1 dead2 expr1 expr2 expr3 float1 float2 \
   for1 for2 for3 for4 for5 func1 func2 func3 func4 func5 func6 func7 \
   func8 func9 global1 global2 if1 if2 if3 nomain printbig printb print \
   return1 return2 while1 while2 canvasassign canvasconstruct curveconstruct-numargs\
-	curveconstruct-typeargs ptassign ptconstruct pipend-fail
+	curveconstruct-typeargs ptassign ptconstruct pipend-fail array-decl-size array-decl-type\
+  array-emptylist array-index array-type field-assign field-invexpr field-prim\
+
 
 TESTFILES = $(TESTS:%=test-%.ssol) $(TESTS:%=test-%.out) \
 	    $(FAILS:%=fail-%.ssol) $(FAILS:%=fail-%.err)
